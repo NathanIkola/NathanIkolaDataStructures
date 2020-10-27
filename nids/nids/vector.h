@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utility>
 
 #define DEFAULT_CAPACITY	8
 
@@ -86,12 +87,12 @@ namespace nids
 		//************************************
 		// Size accessor
 		//************************************
-		inline size_t Size() const noexcept { return m_size; }
+		inline size_t size() const noexcept { return m_size; }
 
 		//************************************
 		// Capacity accessor
 		//************************************
-		inline size_t Capacity() const noexcept { return m_capacity; }
+		inline size_t capacity() const noexcept { return m_capacity; }
 
 		//************************************
 		// Const correct subscript operator
@@ -121,7 +122,7 @@ namespace nids
 		// Returns new capacity, or old
 		// capacity if unchanged
 		//************************************
-		size_t Resize(size_t size);
+		size_t resize(size_t size) noexcept;
 
 		//************************************
 		// Resize method
@@ -132,7 +133,7 @@ namespace nids
 		// Returns new capacity, or old
 		// capacity if unchanged
 		//************************************
-		size_t Resize(size_t size, const Type& val);
+		size_t resize(size_t size, const Type& val) noexcept;
 
 		//************************************
 		// Push back method
@@ -141,7 +142,16 @@ namespace nids
 		// of the vector and reallocates it
 		// if necessary
 		//************************************
-		void PushBack(const Type& data);
+		inline void push_back(const Type& data) noexcept;
+
+		//************************************
+		// Push back method (rvalue)
+		//
+		// Adds the specified data to the end
+		// of the vector and reallocates it
+		// if necessary
+		//************************************
+		inline void push_back(Type&& data) noexcept;
 	private:
 		Type* m_array;
 		size_t m_size;
@@ -230,7 +240,7 @@ namespace nids
 	// Resize method (no initialization)
 	//**********************************
 	template<typename Type>
-	size_t Vector<Type>::Resize(size_t size)
+	size_t Vector<Type>::resize(size_t size) noexcept
 	{
 		assert(size > 0);
 		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
@@ -259,7 +269,7 @@ namespace nids
 	// Resize method (initialization)
 	//**********************************
 	template<typename Type>
-	inline size_t Vector<Type>::Resize(size_t size, const Type& val)
+	size_t Vector<Type>::resize(size_t size, const Type& val) noexcept
 	{
 		assert(size > 0);
 		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
@@ -293,26 +303,29 @@ namespace nids
 	// Push back method
 	//**********************************
 	template<typename Type>
-	inline void Vector<Type>::PushBack(const Type& data)
+	inline void Vector<Type>::push_back(const Type& data) noexcept
 	{
 		assert(m_capacity != 0);
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 		{
-			// attempt to realloc to fit our new size
-			size_t newCapacity = m_capacity * 1.5;
-			Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * newCapacity));
-			// check if realloc failed
-			if (newRegion == nullptr)
-			{
-				newRegion = static_cast<Type*>(malloc(sizeof(Type) * newCapacity));
-				assert(newRegion != nullptr);
-				memcpy(newRegion, m_array, sizeof(Type) * m_size);
-				free(m_array);
-			}
-			m_array = newRegion;
-			m_capacity = newCapacity;
+			resize(static_cast<size_t>(m_capacity * 1.5));
 		}
 		m_array[m_size++] = data;
+	}
+
+	//**********************************
+	// Push back method (rvalue)
+	//**********************************
+	template<typename Type>
+	inline void Vector<Type>::push_back(Type&& data) noexcept
+	{
+		assert(m_capacity != 0);
+		// if reallocation is necessary
+		if (m_size >= m_capacity)
+		{
+			resize(static_cast<size_t>(m_capacity * 1.5));
+		}
+		m_array[m_size++] = std::move(data);
 	}
 }
