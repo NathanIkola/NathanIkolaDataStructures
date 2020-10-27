@@ -17,9 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DEFAULT_CAPACITY	8
+
 namespace nids
 {
-	template<typename Type, size_t Size = 8>
+	template<typename Type>
 	class Vector
 	{
 	public:
@@ -27,10 +29,10 @@ namespace nids
 		//************************************
 		// Default constructor
 		//************************************
-		inline Vector() noexcept : m_array(nullptr), m_size(0), m_capacity(Size)
+		inline Vector() noexcept : m_array(nullptr), m_size(0), m_capacity(DEFAULT_CAPACITY)
 		{
 			static_assert(sizeof(Type) != 0);
-			m_array = malloc(sizeof(Type) * m_capacity);
+			m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
 			assert(m_array != nullptr);
 		}
 
@@ -45,7 +47,7 @@ namespace nids
 		{
 			static_assert(sizeof(Type) != 0);
 			assert(size != 0);
-			m_array = malloc(sizeof(Type) * m_capacity);
+			m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
 			assert(m_array != nullptr);
 		}
 
@@ -73,10 +75,11 @@ namespace nids
 		// Destructor
 		//************************************
 		inline ~Vector() noexcept 
-		{ 
+		{
 			m_size = 0;
 			m_capacity = 0;
 			free(m_array);
+			m_array = nullptr;
 		}
 
 		//****************[ Accessor Methods ]
@@ -89,6 +92,24 @@ namespace nids
 		// Capacity accessor
 		//************************************
 		inline size_t Capacity() const noexcept { return m_capacity; }
+
+		//************************************
+		// Const correct subscript operator
+		//************************************
+		inline const Type& operator[](size_t index) const noexcept
+		{
+			assert(index < m_size);
+			return m_array[index];
+		}
+
+		//************************************
+		// Subscript operator
+		//************************************
+		inline Type& operator[](size_t index) noexcept
+		{
+			assert(index < m_size);
+			return m_array[index];
+		}
 
 		//*****************[ Mutator Methods ]
 		//************************************
@@ -130,12 +151,12 @@ namespace nids
 	//*************************************
 	// Copy constructor
 	//*************************************
-	template<typename Type, size_t Size>
-	inline Vector<Type, Size>::Vector(const Vector& rhs) noexcept
+	template<typename Type>
+	inline Vector<Type>::Vector(const Vector& rhs) noexcept
 		: m_array(nullptr), m_size(rhs.m_size), m_capacity(rhs.m_capacity)
 	{
 		assert(rhs.m_capacity > 0);
-		m_array = malloc(sizeof(Type) * m_capacity);
+		m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
 		assert(m_array != nullptr);
 		memcpy(m_array, rhs.m_array, sizeof(Type) * m_size);
 	}
@@ -143,8 +164,8 @@ namespace nids
 	//**********************************
 	// Move constructor
 	//**********************************
-	template<typename Type, size_t Size>
-	inline Vector<Type, Size>::Vector(Vector&& rhs) noexcept
+	template<typename Type>
+	inline Vector<Type>::Vector(Vector&& rhs) noexcept
 		: m_array(rhs.m_array), m_size(rhs.m_size), m_capacity(rhs.m_capacity)
 	{
 		assert(rhs.m_capacity > 0);
@@ -156,8 +177,8 @@ namespace nids
 	//**********************************
 	// Copy assignment operator
 	//**********************************
-	template<typename Type, size_t Size>
-	inline const Vector<Type, Size>& Vector<Type, Size>::operator=(const Vector& rhs) noexcept
+	template<typename Type>
+	inline const Vector<Type>& Vector<Type>::operator=(const Vector& rhs) noexcept
 	{
 		assert(rhs.m_capacity > 0);
 		if (this != &rhs)
@@ -166,11 +187,11 @@ namespace nids
 			if (m_capacity < rhs.m_capacity)
 			{
 				m_capacity = rhs.m_capacity;
-				Type* newRegion = realloc(m_array, sizeof(Type) * m_capacity);
+				Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * m_capacity));
 				if (newRegion == nullptr)
 				{
 					free(m_array);
-					newRegion = malloc(sizeof(Type) * m_capacity);
+					newRegion = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
 					assert(newRegion != nullptr);
 				}
 				m_array = newRegion;
@@ -186,14 +207,14 @@ namespace nids
 	//**********************************
 	// Move assignment operator
 	//**********************************
-	template<typename Type, size_t Size>
-	inline Vector<Type, Size>& Vector<Type, Size>::operator=(Vector&& rhs) noexcept
+	template<typename Type>
+	inline Vector<Type>& Vector<Type>::operator=(Vector&& rhs) noexcept
 	{
 		assert(rhs.m_capacity > 0);
 		if (this != &rhs)
 		{
 			// purge the left hand side
-			free(m_arrray);
+			free(m_array);
 			// move the right hand side
 			m_array = rhs.m_array;
 			m_size = rhs.m_size;
@@ -208,16 +229,16 @@ namespace nids
 	//**********************************
 	// Resize method (no initialization)
 	//**********************************
-	template<typename Type, size_t Size>
-	size_t Vector<Type, Size>::Resize(size_t size)
+	template<typename Type>
+	size_t Vector<Type>::Resize(size_t size)
 	{
 		assert(size > 0);
-		Type* newRegion = realloc(m_array, sizeof(Type) * size);
+		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
 
 		// if realloc failed
 		if (newRegion == nullptr)
 		{
-			newRegion = malloc(sizeof(Type) * size);
+			newRegion = static_cast<Type*>(malloc(sizeof(Type) * size));
 			if (newRegion == nullptr)
 				return m_capacity;
 			
@@ -237,16 +258,16 @@ namespace nids
 	//**********************************
 	// Resize method (initialization)
 	//**********************************
-	template<typename Type, size_t Size>
-	inline size_t Vector<Type, Size>::Resize(size_t size, const Type& val)
+	template<typename Type>
+	inline size_t Vector<Type>::Resize(size_t size, const Type& val)
 	{
 		assert(size > 0);
-		Type* newRegion = realloc(m_array, sizeof(Type) * size);
+		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
 
 		// if realloc failed
 		if (newRegion == nullptr)
 		{
-			newRegion = malloc(sizeof(Type) * size);
+			newRegion = static_cast<Type*>(malloc(sizeof(Type) * size));
 			if (newRegion == nullptr)
 				return m_capacity;
 
@@ -271,8 +292,8 @@ namespace nids
 	//**********************************
 	// Push back method
 	//**********************************
-	template<typename Type, size_t Size>
-	inline void Vector<Type, Size>::PushBack(const Type& data)
+	template<typename Type>
+	inline void Vector<Type>::PushBack(const Type& data)
 	{
 		assert(m_capacity != 0);
 		// if reallocation is necessary
@@ -280,16 +301,17 @@ namespace nids
 		{
 			// attempt to realloc to fit our new size
 			size_t newCapacity = m_capacity * 1.5;
-			Type* newRegion = realloc(m_array, sizeof(Type) * newCapacity);
+			Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * newCapacity));
 			// check if realloc failed
 			if (newRegion == nullptr)
 			{
-				newRegion = malloc(sizeof(Type) * newCapacity);
+				newRegion = static_cast<Type*>(malloc(sizeof(Type) * newCapacity));
 				assert(newRegion != nullptr);
 				memcpy(newRegion, m_array, sizeof(Type) * m_size);
 				free(m_array);
-				m_array = newRegion;
 			}
+			m_array = newRegion;
+			m_capacity = newCapacity;
 		}
 		m_array[m_size++] = data;
 	}
