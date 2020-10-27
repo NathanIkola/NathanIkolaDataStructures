@@ -27,5 +27,8 @@
     <ClInclude Include="node.h">
       <Filter>Header Files\Graph</Filter>
     </ClInclude>
+    <ClInclude Include="vector.h">
+      <Filter>Header Files\Vector</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
