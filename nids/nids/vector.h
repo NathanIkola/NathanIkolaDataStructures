@@ -26,14 +26,14 @@ namespace nids
 	const float EXPANSION_SIZE = 3;
 
 	template<typename Type>
-	class Vector final
+	class vector final
 	{
 	public:
 		//*****************[ Manager Methods ]
 		//************************************
 		// Default constructor
 		//************************************
-		inline Vector() noexcept : m_array(nullptr), m_size(0), m_capacity(DEFAULT_CAPACITY)
+		inline vector() noexcept : m_array(nullptr), m_size(0), m_capacity(DEFAULT_CAPACITY)
 		{
 			static_assert(sizeof(Type) != 0);
 			m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
@@ -47,7 +47,7 @@ namespace nids
 		// without explicitly using the
 		// template parameters
 		//************************************
-		inline Vector(size_t size) noexcept : m_array(nullptr), m_size(0), m_capacity(size)
+		inline vector(size_t size) noexcept : m_array(nullptr), m_size(0), m_capacity(size)
 		{
 			static_assert(sizeof(Type) != 0);
 			assert(size != 0);
@@ -58,27 +58,27 @@ namespace nids
 		//************************************
 		// Copy constructor
 		//************************************
-		Vector(const Vector& rhs) noexcept;
+		vector(const vector& rhs) noexcept;
 
 		//************************************
 		// Move constructor
 		//************************************
-		Vector(Vector&& rhs) noexcept;
+		vector(vector&& rhs) noexcept;
 
 		//************************************
 		// Copy assignment operator
 		//************************************
-		const Vector& operator=(const Vector& rhs) noexcept;
+		const vector& operator=(const vector& rhs) noexcept;
 
 		//************************************
 		// Move assignment operator
 		//************************************
-		Vector& operator=(Vector&& rhs) noexcept;
+		vector& operator=(vector&& rhs) noexcept;
 
 		//************************************
 		// Destructor
 		//************************************
-		inline ~Vector() noexcept 
+		inline ~vector() noexcept 
 		{
 			m_size = 0;
 			m_capacity = 0;
@@ -174,7 +174,7 @@ namespace nids
 	// Copy constructor
 	//*************************************
 	template<typename Type>
-	inline Vector<Type>::Vector(const Vector& rhs) noexcept
+	inline vector<Type>::vector(const vector& rhs) noexcept
 		: m_array(nullptr), m_size(rhs.m_size), m_capacity(rhs.m_capacity)
 	{
 		assert(rhs.m_capacity > 0);
@@ -187,7 +187,7 @@ namespace nids
 	// Move constructor
 	//**********************************
 	template<typename Type>
-	inline Vector<Type>::Vector(Vector&& rhs) noexcept
+	inline vector<Type>::vector(vector&& rhs) noexcept
 		: m_array(rhs.m_array), m_size(rhs.m_size), m_capacity(rhs.m_capacity)
 	{
 		assert(rhs.m_capacity > 0);
@@ -200,7 +200,7 @@ namespace nids
 	// Copy assignment operator
 	//**********************************
 	template<typename Type>
-	inline const Vector<Type>& Vector<Type>::operator=(const Vector& rhs) noexcept
+	inline const vector<Type>& vector<Type>::operator=(const vector& rhs) noexcept
 	{
 		assert(rhs.m_capacity > 0);
 		if (this != &rhs)
@@ -230,7 +230,7 @@ namespace nids
 	// Move assignment operator
 	//**********************************
 	template<typename Type>
-	inline Vector<Type>& Vector<Type>::operator=(Vector&& rhs) noexcept
+	inline vector<Type>& vector<Type>::operator=(vector&& rhs) noexcept
 	{
 		assert(rhs.m_capacity > 0);
 		if (this != &rhs)
@@ -252,7 +252,7 @@ namespace nids
 	// Resize method (no initialization)
 	//**********************************
 	template<typename Type>
-	size_t Vector<Type>::resize(size_t size) noexcept
+	size_t vector<Type>::resize(size_t size) noexcept
 	{
 		assert(size > 0);
 		void* newRegion = realloc(m_array, sizeof(Type) * size);
@@ -281,7 +281,7 @@ namespace nids
 	// Resize method (initialization)
 	//**********************************
 	template<typename Type>
-	size_t Vector<Type>::resize(size_t size, const Type& val) noexcept
+	size_t vector<Type>::resize(size_t size, const Type& val) noexcept
 	{
 		assert(size > 0);
 		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
@@ -315,7 +315,7 @@ namespace nids
 	// Push back method
 	//**********************************
 	template<typename Type>
-	inline void Vector<Type>::push_back(const Type& data) noexcept
+	inline void vector<Type>::push_back(const Type& data) noexcept
 	{
 		assert(m_capacity != 0);
 		// if reallocation is necessary
@@ -330,7 +330,7 @@ namespace nids
 	// Push back method (rvalue)
 	//**********************************
 	template<typename Type>
-	inline void Vector<Type>::push_back(Type&& data) noexcept
+	inline void vector<Type>::push_back(Type&& data) noexcept
 	{
 		assert(m_capacity != 0);
 		// if reallocation is necessary
@@ -345,7 +345,7 @@ namespace nids
 	// Push back method (shallow copy)
 	//**********************************
 	template<typename Type>
-	inline void Vector<Type>::push_back_s(const Type& data) noexcept
+	inline void vector<Type>::push_back_s(const Type& data) noexcept
 	{
 		assert(m_capacity != 0);
 		// if reallocation is necessary

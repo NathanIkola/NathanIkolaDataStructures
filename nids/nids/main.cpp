@@ -17,10 +17,10 @@
 
 #ifdef MYVEC
 #include "vector.h"
-#define VEC nids::Vector
+using nids::vector;
 #else
 #include <vector>
-#define VEC std::vector
+using std::vector
 #endif
 #include "vector.h"
 
@@ -28,7 +28,7 @@ const int NUM_ELEMENTS = 1000000000;
 
 int main()
 {
-	VEC<int> v;
+	vector<int> v;
 
 	for (int element{ 0 }; element < NUM_ELEMENTS; ++element)
 	{
