@@ -5,7 +5,7 @@
 // vector class.
 //
 // The resize strategy is to up the
-// size by 1.5 each time an allocation
+// size by 3 each time an allocation
 // is required
 //
 // Author: Nathan Ikola
@@ -18,12 +18,15 @@
 #include <string.h>
 #include <utility>
 
-#define DEFAULT_CAPACITY	8
-
 namespace nids
 {
+	// default capacity of the vector
+	const size_t DEFAULT_CAPACITY = 8;
+	// static expansion size on push_back expansion
+	const float EXPANSION_SIZE = 3;
+
 	template<typename Type>
-	class Vector
+	class Vector final
 	{
 	public:
 		//*****************[ Manager Methods ]
@@ -152,6 +155,15 @@ namespace nids
 		// if necessary
 		//************************************
 		inline void push_back(Type&& data) noexcept;
+
+		//************************************
+		// Push back method (shallow copy)
+		//
+		// Adds the specified data to the end
+		// of the vector and reallocates it
+		// if necessary, shallow copies it
+		//************************************
+		inline void push_back_s(const Type& data) noexcept;
 	private:
 		Type* m_array;
 		size_t m_size;
@@ -243,12 +255,12 @@ namespace nids
 	size_t Vector<Type>::resize(size_t size) noexcept
 	{
 		assert(size > 0);
-		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
+		void* newRegion = realloc(m_array, sizeof(Type) * size);
 
 		// if realloc failed
 		if (newRegion == nullptr)
 		{
-			newRegion = static_cast<Type*>(malloc(sizeof(Type) * size));
+			newRegion = malloc(sizeof(Type) * size);
 			if (newRegion == nullptr)
 				return m_capacity;
 			
@@ -257,7 +269,7 @@ namespace nids
 			free(m_array);
 		}
 
-		m_array = newRegion;
+		m_array = static_cast<Type*>(newRegion);
 
 		m_capacity = size;
 		if (m_capacity < m_size)
@@ -309,7 +321,7 @@ namespace nids
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 		{
-			resize(static_cast<size_t>(m_capacity * 1.5));
+			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		}
 		m_array[m_size++] = data;
 	}
@@ -324,8 +336,21 @@ namespace nids
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 		{
-			resize(static_cast<size_t>(m_capacity * 1.5));
+			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		}
 		m_array[m_size++] = std::move(data);
+	}
+
+	//**********************************
+	// Push back method (shallow copy)
+	//**********************************
+	template<typename Type>
+	inline void Vector<Type>::push_back_s(const Type& data) noexcept
+	{
+		assert(m_capacity != 0);
+		// if reallocation is necessary
+		if (m_size >= m_capacity)
+			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		memcpy(&m_array[m_size++], &data, sizeof(Type));
 	}
 }
