@@ -20,8 +20,6 @@
 
 namespace nids
 {
-	// default capacity of the vector
-	const size_t DEFAULT_CAPACITY = 8;
 	// static expansion size on push_back expansion
 	const float EXPANSION_SIZE = 3;
 
@@ -33,11 +31,10 @@ namespace nids
 		//************************************
 		// Default constructor
 		//************************************
-		inline vector() noexcept : m_array(nullptr), m_size(0), m_capacity(DEFAULT_CAPACITY)
+		inline vector() noexcept : m_array(nullptr), m_size(0), m_capacity(0)
 		{
 			static_assert(sizeof(Type) != 0);
-			m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
-			assert(m_array != nullptr);
+			m_array = nullptr;
 		}
 
 		//************************************
@@ -50,9 +47,13 @@ namespace nids
 		inline vector(size_t size) noexcept : m_array(nullptr), m_size(0), m_capacity(size)
 		{
 			static_assert(sizeof(Type) != 0);
-			assert(size != 0);
-			m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
-			assert(m_array != nullptr);
+			if (m_capacity > 0)
+			{
+				m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
+				assert(m_array != nullptr);
+			}
+			else
+				m_array = nullptr;
 		}
 
 		//************************************
@@ -254,7 +255,15 @@ namespace nids
 	template<typename Type>
 	size_t vector<Type>::resize(size_t size) noexcept
 	{
-		assert(size > 0);
+		// handle the case of empty capacity
+		if (size == 0)
+		{
+			m_capacity = 1;
+			m_array = static_cast<Type*>(malloc(sizeof(Type)));
+			assert(m_array != nullptr);
+			return 1;
+		}
+
 		void* newRegion = realloc(m_array, sizeof(Type) * size);
 
 		// if realloc failed
@@ -283,7 +292,16 @@ namespace nids
 	template<typename Type>
 	size_t vector<Type>::resize(size_t size, const Type& val) noexcept
 	{
-		assert(size > 0);
+		// handle the case of empty capacity
+		if (size == 0)
+		{
+			m_capacity = 1;
+			m_array = static_cast<Type*>(malloc(sizeof(Type)));
+			m_array[0] = val;
+			assert(m_array != nullptr);
+			return 1;
+		}
+
 		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
 
 		// if realloc failed
@@ -317,7 +335,6 @@ namespace nids
 	template<typename Type>
 	inline void vector<Type>::push_back(const Type& data) noexcept
 	{
-		assert(m_capacity != 0);
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 		{
@@ -332,7 +349,6 @@ namespace nids
 	template<typename Type>
 	inline void vector<Type>::push_back(Type&& data) noexcept
 	{
-		assert(m_capacity != 0);
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 		{
@@ -347,7 +363,6 @@ namespace nids
 	template<typename Type>
 	inline void vector<Type>::push_back_s(const Type& data) noexcept
 	{
-		assert(m_capacity != 0);
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));

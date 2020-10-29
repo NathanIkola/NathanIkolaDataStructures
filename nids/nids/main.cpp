@@ -20,7 +20,7 @@
 using nids::vector;
 #else
 #include <vector>
-using std::vector
+using std::vector;
 #endif
 #include "vector.h"
 
