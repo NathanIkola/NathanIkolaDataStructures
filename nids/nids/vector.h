@@ -89,6 +89,8 @@ namespace nids
 			m_capacity = 0;
 			free(m_array);
 			m_array = nullptr;
+			free(_swap);
+			_swap = nullptr;
 		}
 
 		//****************[ Accessor Methods ]
