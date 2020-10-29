@@ -156,15 +156,6 @@ namespace nids
 		// if necessary
 		//************************************
 		inline void push_back(Type&& data) noexcept;
-
-		//************************************
-		// Push back method (shallow copy)
-		//
-		// Adds the specified data to the end
-		// of the vector and reallocates it
-		// if necessary, shallow copies it
-		//************************************
-		inline void push_back_s(const Type& data) noexcept;
 	private:
 		Type* m_array;
 		size_t m_size;
@@ -255,13 +246,13 @@ namespace nids
 	template<typename Type>
 	size_t vector<Type>::resize(size_t size) noexcept
 	{
-		// handle the case of empty capacity
+		// see if size is equal to zero
 		if (size == 0)
 		{
-			m_capacity = 1;
-			m_array = static_cast<Type*>(malloc(sizeof(Type)));
-			assert(m_array != nullptr);
-			return 1;
+			m_capacity = 0;
+			free(m_array);
+			m_array = nullptr;
+			return 0;
 		}
 
 		void* newRegion = realloc(m_array, sizeof(Type) * size);
@@ -292,14 +283,13 @@ namespace nids
 	template<typename Type>
 	size_t vector<Type>::resize(size_t size, const Type& val) noexcept
 	{
-		// handle the case of empty capacity
+		// see if size is equal to zero
 		if (size == 0)
 		{
-			m_capacity = 1;
-			m_array = static_cast<Type*>(malloc(sizeof(Type)));
-			m_array[0] = val;
-			assert(m_array != nullptr);
-			return 1;
+			m_capacity = 0;
+			free(m_array);
+			m_array = nullptr;
+			return 0;
 		}
 
 		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
@@ -338,6 +328,7 @@ namespace nids
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 		{
+			if (m_capacity == 0) ++m_capacity;
 			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		}
 		m_array[m_size++] = data;
@@ -352,20 +343,9 @@ namespace nids
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 		{
+			if (m_capacity == 0) ++m_capacity;
 			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		}
 		m_array[m_size++] = std::move(data);
-	}
-
-	//**********************************
-	// Push back method (shallow copy)
-	//**********************************
-	template<typename Type>
-	inline void vector<Type>::push_back_s(const Type& data) noexcept
-	{
-		// if reallocation is necessary
-		if (m_size >= m_capacity)
-			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
-		memcpy(&m_array[m_size++], &data, sizeof(Type));
 	}
 }
