@@ -31,10 +31,12 @@ namespace nids
 		//************************************
 		// Default constructor
 		//************************************
-		inline vector() noexcept : m_array(nullptr), m_size(0), m_capacity(0)
+		inline vector() noexcept : m_array(nullptr), m_size(0), m_capacity(0), _swap(nullptr)
 		{
 			static_assert(sizeof(Type) != 0);
 			m_array = nullptr;
+			_swap = static_cast<Type*>(malloc(sizeof(Type)));
+			assert(_swap != nullptr);
 		}
 
 		//************************************
@@ -54,6 +56,8 @@ namespace nids
 			}
 			else
 				m_array = nullptr;
+			_swap = malloc(sizeof(Type));
+			assert(_swap != nullptr);
 		}
 
 		//************************************
@@ -160,6 +164,8 @@ namespace nids
 		Type* m_array;
 		size_t m_size;
 		size_t m_capacity;
+		// this is the swap space for inserting values
+		Type* _swap;
 	};
 
 	//*************************************
@@ -328,8 +334,12 @@ namespace nids
 		// if reallocation is necessary
 		if (m_size >= m_capacity)
 		{
+			bool _must_be_cached = &data >= m_array && &data <= m_array + m_capacity;
 			if (m_capacity == 0) ++m_capacity;
+			else if (_must_be_cached) memcpy(_swap, &data, sizeof(Type));
+			// if we are about to resize, make a copy of the data just in case
 			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			m_array[m_size++] = _must_be_cached ? *_swap : data;
 		}
 		m_array[m_size++] = data;
 	}
@@ -344,8 +354,15 @@ namespace nids
 		if (m_size >= m_capacity)
 		{
 			if (m_capacity == 0) ++m_capacity;
+			else if (&data >= m_array && &data <= m_array + m_capacity)
+			{
+				size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
+				resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+				m_array[m_size++] = std::move(m_array[_cached_index]);
+				return;
+			}
 			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		}
-		m_array[m_size++] = std::move(data);
+		m_array[m_size++] = data;
 	}
 }

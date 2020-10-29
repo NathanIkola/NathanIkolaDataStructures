@@ -32,7 +32,7 @@ int main()
 
 	for (int element{ 0 }; element < NUM_ELEMENTS; ++element)
 	{
-		v.push_back(element);
+		v.push_back(std::move(element));
 	}
 
 	return 0;
