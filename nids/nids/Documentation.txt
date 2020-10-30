@@ -1,0 +1,28 @@
+~~~~~~~~~~ NIDS Documentation ~~~~~~~~~~
+
+////////////////////////[ nids::vector ]
+============================[ Overview ]
+	The nids::vector is an attempt at creating an
+alternative for the std::vector that does not use
+any of the C++ exception functionality; instead,
+nids::vector uses asserts to enforce that values
+are within expected range (no nullptr after malloc,
+indexes are all within range of vector size, etc...).
+Additionally, nids::vector uses malloc, realloc, and
+free to manage memory versus free and delete.
+
+======================[ Design Choices ]
+push_back:
+	The push_back methods are NOT guaranteed to be 
+	safe for use with variable references that come 
+	from within the vector (i.e. v.push_back(v[0])).
+	If the vector resizes on a push_back call which
+	uses a reference to the vector's interal array,
+	the address initially passed in isn't guaranteed
+	to be the same after the resize has taken place.
+	
+	To have safe behavior, use the push_back_i
+	method, which accepts internal references and
+	caches the array index that corresponds to the
+	value passed if the array is resizes, so that
+	it can always reference the correct value.

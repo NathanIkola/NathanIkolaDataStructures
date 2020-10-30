@@ -145,6 +145,11 @@ namespace nids
 		// Adds the specified data to the end
 		// of the vector and reallocates it
 		// if necessary
+		//
+		// WARNING: passing in references
+		// to current vector index can
+		// result in undefined behavior if
+		// the vector resizes on push_back
 		//************************************
 		inline void push_back(const Type& data) noexcept;
 
@@ -154,8 +159,32 @@ namespace nids
 		// Adds the specified data to the end
 		// of the vector and reallocates it
 		// if necessary
+		//
+		// WARNING: passing in references
+		// to current vector index can
+		// result in undefined behavior if
+		// the vector resizes on push_back
 		//************************************
 		inline void push_back(Type&& data) noexcept;
+
+		//************************************
+		// Push back method (internal safe)
+		//
+		// Adds the specified data to the end
+		// of the vector and reallocates it
+		// if necessary
+		//************************************
+		inline void push_back_i(const Type& data) noexcept;
+
+		//************************************
+		// Push back method 
+		// (rvalue, internal safe)
+		//
+		// Adds the specified data to the end
+		// of the vector and reallocates it
+		// if necessary
+		//************************************
+		inline void push_back_i(Type&& data) noexcept;
 	private:
 		Type* m_array;
 		size_t m_size;
@@ -326,19 +355,14 @@ namespace nids
 	inline void vector<Type>::push_back(const Type& data) noexcept
 	{
 		// if reallocation is necessary
-		if (m_size >= m_capacity)
+		if (m_size < m_capacity)
 		{
-			if (m_capacity == 0) ++m_capacity;
-			else if (&data >= m_array && &data <= m_array + m_capacity)
-			{
-				size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
-				resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
-				m_array[m_size++] = m_array[_cached_index];
-				return;
-			}
-			// if we are about to resize, make a copy of the data just in case
-			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			m_array[m_size++] = data;
+			return;
 		}
+
+		if (m_capacity == 0) ++m_capacity;
+		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		m_array[m_size++] = data;
 	}
 
@@ -349,18 +373,64 @@ namespace nids
 	inline void vector<Type>::push_back(Type&& data) noexcept
 	{
 		// if reallocation is necessary
-		if (m_size >= m_capacity)
+		if (m_size < m_capacity)
 		{
-			if (m_capacity == 0) ++m_capacity;
-			else if (&data >= m_array && &data <= m_array + m_capacity)
-			{
-				size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
-				resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
-				m_array[m_size++] = std::move(m_array[_cached_index]);
-				return;
-			}
-			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			m_array[m_size++] = data;
+			return;
 		}
+
+		if (m_capacity == 0) ++m_capacity;
+		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		m_array[m_size++] = data;
+	}
+
+	//**********************************
+	// Push back method
+	//**********************************
+	template<typename Type>
+	inline void vector<Type>::push_back_i(const Type& data) noexcept
+	{
+		// if reallocation is necessary
+		if (m_size < m_capacity)
+		{
+			m_array[m_size++] = data;
+			return;
+		}
+
+		if (m_capacity == 0) ++m_capacity;
+		else if (&data >= m_array && &data <= m_array + m_capacity)
+		{
+			size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
+			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			m_array[m_size++] = m_array[_cached_index];
+			return;
+		}
+		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		m_array[m_size++] = data;
+	}
+
+	//**********************************
+	// Push back method (rvalue)
+	//**********************************
+	template<typename Type>
+	inline void vector<Type>::push_back_i(Type&& data) noexcept
+	{
+		// if reallocation is necessary
+		if (m_size < m_capacity)
+		{
+			m_array[m_size++] = data;
+			return;
+		}
+
+		if (m_capacity == 0) ++m_capacity;
+		else if (&data >= m_array && &data <= m_array + m_capacity)
+		{
+			size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
+			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			m_array[m_size++] = std::move(m_array[_cached_index]);
+			return;
+		}
+		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		m_array[m_size++] = data;
 	}
 }

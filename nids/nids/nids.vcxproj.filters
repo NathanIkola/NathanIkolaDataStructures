@@ -19,6 +19,9 @@
     <Filter Include="Header Files\Vector">
       <UniqueIdentifier>{1e466e20-8fcb-418c-8842-74d049fd8832}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Documentation">
+      <UniqueIdentifier>{6c0a4049-f4c5-4c29-b5e6-455d8a0e2e16}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graph.h">
@@ -35,5 +38,10 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Documentation.txt">
+      <Filter>Resource Files\Documentation</Filter>
+    </Text>
   </ItemGroup>
 </Project>
