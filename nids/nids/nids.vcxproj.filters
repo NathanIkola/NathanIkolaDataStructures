@@ -33,6 +33,9 @@
     <ClInclude Include="vector.h">
       <Filter>Header Files\Vector</Filter>
     </ClInclude>
+    <ClInclude Include="vector_iterator.h">
+      <Filter>Header Files\Vector</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

@@ -146,6 +146,7 @@
     <ClInclude Include="graph.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="vector.h" />
+    <ClInclude Include="vector_iterator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

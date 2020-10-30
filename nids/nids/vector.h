@@ -14,9 +14,29 @@
 #pragma once
 
 #include <assert.h>
+#include <limits>
 #include <stdlib.h>
 #include <string.h>
 #include <utility>
+
+/*
+TODO:
+	front
+	back
+	data?
+	begin, cbegin
+	end, cend
+	rbegin, crbegin
+	reserve
+	shrink_to_fit
+	clear
+	insert
+	emplace
+	erase
+	emplace_back
+	pop_back
+	swap
+*/
 
 namespace nids
 {
@@ -24,9 +44,14 @@ namespace nids
 	const float EXPANSION_SIZE = 3;
 
 	template<typename Type>
+	class vector_iterator;
+
+	template<typename Type>
 	class vector final
 	{
 	public:
+		using iterator = vector_iterator<Type>;
+
 		//*****************[ Manager Methods ]
 		//************************************
 		// Default constructor
@@ -115,6 +140,31 @@ namespace nids
 			assert(index < m_size);
 			return m_array[index];
 		}
+
+		//************************************
+		// Const correct at object accessor
+		//************************************
+		inline const Type& at(size_t index) const noexcept { return operator[](index); }
+
+		//************************************
+		// At object accessor
+		//************************************
+		inline Type& at(size_t index) noexcept { return operator[](index); }
+
+		//************************************
+		// Max index getter
+		//************************************
+		inline size_t max_size() const noexcept { return std::numeric_limits<size_t>::max(); }
+
+		//************************************
+		// Empty status getter
+		//************************************
+		inline bool empty() const noexcept { return m_size == 0; }
+
+		//************************************
+		// Begin iterator getter
+		//************************************
+		inline typename iterator begin() noexcept;
 
 		//*****************[ Mutator Methods ]
 		//************************************
@@ -385,7 +435,7 @@ namespace nids
 	}
 
 	//**********************************
-	// Push back method
+	// Push back method (internal safe)
 	//**********************************
 	template<typename Type>
 	inline void vector<Type>::push_back_i(const Type& data) noexcept
@@ -410,7 +460,8 @@ namespace nids
 	}
 
 	//**********************************
-	// Push back method (rvalue)
+	// Push back method 
+	// (rvalue, internal safe)
 	//**********************************
 	template<typename Type>
 	inline void vector<Type>::push_back_i(Type&& data) noexcept
@@ -432,5 +483,20 @@ namespace nids
 		}
 		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		m_array[m_size++] = data;
+	}
+}
+
+#include "vector_iterator.h"
+
+// split out the methods that need the vector_iterator class
+namespace nids
+{
+	//************************************
+	// Begin iterator getter
+	//************************************
+	template<typename Type>
+	inline typename vector<Type>::iterator vector<Type>::begin() noexcept
+	{
+		return vector_iterator(this);
 	}
 }
