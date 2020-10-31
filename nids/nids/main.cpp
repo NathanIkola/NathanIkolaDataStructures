@@ -7,12 +7,6 @@
 // nathan.ikola@gmail.com
 //**************************************
 
-/*
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-*/
-
 #define MYVEC
 
 #ifdef MYVEC

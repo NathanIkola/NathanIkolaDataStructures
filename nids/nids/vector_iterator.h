@@ -17,29 +17,29 @@ namespace nids
 		//******************************
 		// End getter
 		//******************************
-		static inline vector_iterator<Type> end() noexcept 
+		static constexpr inline vector_iterator<Type> end() noexcept
 		{
-			vector_iterator<Type> v(static_cast<vector<Type>*>(this));
-			v.m_vector = nullptr;
-			return v;
+			return vector_iterator<Type> { static_cast<vector<Type>*>(nullptr) };
 		}
 
 		//******************************
 		// Constructor
 		//******************************
-		inline vector_iterator(vector<Type>* vector) noexcept : m_vector(vector) { assert(vector != nullptr); }
+		inline vector_iterator(vector<Type>* vector) noexcept : m_vector(vector), m_vectorCapacity(0), m_cursor(0) 
+		{ 
+			if (m_vector != nullptr) m_vectorCapacity = vector->capacity(); 
+		}
 
 		//******************************
 		// Copy constructor
 		//******************************
-		inline vector_iterator(const vector_iterator<Type>& rhs) noexcept : m_vector(rhs.m_vector), m_vectorCapacity(rhs.m_vectorCapacity) { assert(m_vector != nullptr); }
+		inline vector_iterator(const vector_iterator<Type>& rhs) noexcept : m_vector(rhs.m_vector), m_vectorCapacity(rhs.m_vectorCapacity), m_cursor(0) { }
 
 		//******************************
 		// Move constructor
 		//******************************
-		inline vector_iterator(vector_iterator<Type>&& rhs) noexcept : m_vector(rhs.m_vector), m_vectorCapacity(rhs.m_vectorCapacity)
+		inline vector_iterator(vector_iterator<Type>&& rhs) noexcept : m_vector(rhs.m_vector), m_vectorCapacity(rhs.m_vectorCapacity), m_cursor(rhs.m_cursor)
 		{
-			assert(m_vector != nullptr);
 			rhs.m_vector = nullptr;
 			rhs.m_vectorCapacity = 0;
 		}
@@ -92,9 +92,9 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator++() noexcept 
 		{
-			assert(m_vector != nullptr);
+			assert(is_valid());
 			++m_cursor;
-			if (m_cursor >= m_vectorCapacity) m_vector = nullptr;
+			if (m_cursor >= m_vector->size()) m_vector = nullptr;
 			return *this;
 		}
 
@@ -103,10 +103,10 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator++(int) noexcept 
 		{
-			assert(m_vector != nullptr);
+			assert(is_valid());
 			vector_iterator<Type> _r = *this;
 			++m_cursor;
-			if (m_cursor >= m_vectorCapacity) m_vector = nullptr;
+			if (m_cursor >= m_vector->size()) m_vector = nullptr;
 			return _r;
 		}
 
@@ -115,8 +115,8 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator--() noexcept
 		{
-			assert(m_vector != nullptr);
 			assert(m_cursor != 0);
+			assert(is_valid());
 			--m_cursor;
 			return *this;
 		}
@@ -126,8 +126,8 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator--(int) noexcept
 		{
-			assert(m_vector != nullptr);
 			assert(m_cursor != 0);
+			assert(is_valid());
 			vector_iterator<Type> _r = *this;
 			--m_cursor;
 			return _r;
@@ -165,15 +165,24 @@ namespace nids
 		// Dereference operator
 		// (const correct)
 		//******************************
-		inline const Type& operator*() const noexcept { return m_vector[m_cursor]; }
+		inline const Type& operator*() const noexcept { return m_vector->at(m_cursor); }
 
 		//******************************
 		// Dereference operator
 		//******************************
-		inline Type& operator*() noexcept { return m_vector[m_cursor]; }
+		inline Type& operator*() noexcept { return m_vector->at(m_cursor); }
 	private:
 		size_t m_cursor;
 		size_t m_vectorCapacity;
 		vector<Type>* m_vector;
+
+		//******************************
+		// Validity checker
+		//******************************
+		inline bool is_valid() const noexcept 
+		{ 
+			return m_vector != nullptr 
+				&& m_vectorCapacity == m_vector->capacity(); 
+		}
 	};
 }

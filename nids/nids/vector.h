@@ -52,6 +52,11 @@ namespace nids
 	public:
 		using iterator = vector_iterator<Type>;
 
+		//************************************
+		// End getter method
+		//************************************
+		inline constexpr typename iterator end() const noexcept;
+
 		//*****************[ Manager Methods ]
 		//************************************
 		// Default constructor
@@ -497,6 +502,16 @@ namespace nids
 	template<typename Type>
 	inline typename vector<Type>::iterator vector<Type>::begin() noexcept
 	{
-		return vector_iterator(this);
+		if (m_capacity) return vector_iterator(this);
+		return end();
+	}
+
+	//************************************
+	// End getter method
+	//************************************
+	template<typename Type>
+	inline constexpr typename vector<Type>::iterator vector<Type>::end() const noexcept
+	{
+		return iterator::end();
 	}
 }
