@@ -94,7 +94,7 @@ namespace nids
 		//************************************
 		// Copy assignment operator
 		//************************************
-		const vector& operator=(const vector& rhs) noexcept;
+		vector& operator=(const vector& rhs) noexcept;
 
 		//************************************
 		// Move assignment operator
@@ -271,7 +271,7 @@ namespace nids
 	// Copy assignment operator
 	//**********************************
 	template<typename Type>
-	inline const vector<Type>& vector<Type>::operator=(const vector& rhs) noexcept
+	inline vector<Type>& vector<Type>::operator=(const vector& rhs) noexcept
 	{
 		assert(rhs.m_capacity > 0);
 		if (this != &rhs)
@@ -422,7 +422,7 @@ namespace nids
 	template<typename Type>
 	inline void vector<Type>::push_back(Type&& data) noexcept
 	{
-		// if reallocation is necessary
+		// if reallocation is not necessary
 		if (m_size < m_capacity)
 		{
 			m_array[m_size++] = data;
@@ -440,7 +440,7 @@ namespace nids
 	template<typename Type>
 	inline void vector<Type>::push_back_i(const Type& data) noexcept
 	{
-		// if reallocation is necessary
+		// if reallocation is not necessary
 		if (m_size < m_capacity)
 		{
 			m_array[m_size++] = data;

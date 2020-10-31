@@ -26,3 +26,25 @@ push_back:
 	caches the array index that corresponds to the
 	value passed if the array is resizes, so that
 	it can always reference the correct value.
+
+///////////////[ nids::vector_iterator ]
+============================[ Overview ]
+	The nids::vector_iterator is the custom
+iterator designed to iterate over nids::vector.
+
+======================[ Design Choices ]
+end:
+	It is not legal to operate on nids::vector_iterator
+	objects when their m_vector value is set to nullptr.
+	Outside of the class itself, the only way to legally 
+	get nullptr in m_vector is through destruction, move 
+	operators, through iteration, or through the end() 
+	method. Specifically, since it is illegal to operate 
+	on these vectors, I have reserved m_vector == nullptr 
+	to signify the end of the vector.
+
+	To enforce this behavior, when the consumer calls the
+	increment operator or next() and the iterator is at the
+	end of the vector, it sets its m_vector variable to
+	nullptr, so that comparisons for the end of the vector
+	can take place.
