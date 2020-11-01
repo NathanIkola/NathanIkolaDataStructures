@@ -77,12 +77,14 @@ TEST(IteratorDereference, ConstIteratorPointsToFirstIndex)
 	EXPECT_EQ(500, *iter);
 }
 
+#ifdef _DEBUG
 TEST(IteratorDereference, DereferenceInvalidIterator)
 {
 	nids::vector<int> v;
 	auto iter = v.begin();
 	EXPECT_DEATH(*iter, "");
 }
+
 
 TEST(IteratorDereference, DereferenceInvalidConstIterator)
 {
@@ -112,6 +114,7 @@ TEST(IteratorDereference, DereferenceBeginIteratorEmpty)
 	auto iter = v.begin();
 	EXPECT_DEATH(*iter, "");
 }
+#endif
 
 TEST(IteratorDereference, DereferenceClassByPointerOperator)
 {
@@ -159,12 +162,23 @@ TEST(IteratorDereference, ConstIteratorOffset)
 //**************************************
 // Increment tests
 //**************************************
+#ifdef _DEBUG
 TEST(IteratorIncrement, IncrementIteratorForEmptyVector)
 {
 	nids::vector<int> v;
 	auto iter = v.begin();
 	EXPECT_DEATH(++iter, "");
 }
+
+TEST(IteratorIncrement, IncrementIteratorPastEnd)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	auto iter = v.begin();
+	++iter;
+	EXPECT_DEATH(++iter, "");
+}
+#endif
 
 TEST(IteratorIncrement, IncrementIteratorShowsCorrectValue)
 {
@@ -176,15 +190,6 @@ TEST(IteratorIncrement, IncrementIteratorShowsCorrectValue)
 	{
 		EXPECT_EQ(index, *iter);
 	}
-}
-
-TEST(IteratorIncrement, IncrementIteratorPastEnd)
-{
-	nids::vector<int> v;
-	v.push_back(500);
-	auto iter = v.begin();
-	++iter;
-	EXPECT_DEATH(++iter, "");
 }
 
 TEST(IteratorIncrement, IncrementIteratorPost)
@@ -234,12 +239,22 @@ TEST(IteratorIncrement, PlusEqualsIterator)
 //**************************************
 // Decrement tests
 //**************************************
+#ifdef _DEBUG
 TEST(IteratorDecrement, DecrementIteratorForEmptyVector)
 {
 	nids::vector<int> v;
 	auto iter = v.begin();
 	EXPECT_DEATH(--iter, "");
 }
+
+TEST(IteratorDecrement, DecrementIteratorPastBegin)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	auto iter = v.begin();
+	EXPECT_DEATH(--iter, "");
+}
+#endif
 
 TEST(IteratorDecrement, DecrementIteratorShowsCorrectValue)
 {
@@ -252,14 +267,6 @@ TEST(IteratorDecrement, DecrementIteratorShowsCorrectValue)
 	{
 		EXPECT_EQ(99 - index, *iter);
 	}
-}
-
-TEST(IteratorDecrement, DecrementIteratorPastBegin)
-{
-	nids::vector<int> v;
-	v.push_back(500);
-	auto iter = v.begin();
-	EXPECT_DEATH(--iter, "");
 }
 
 TEST(IteratorDecrement, DecrementIteratorPost)

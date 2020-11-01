@@ -21,20 +21,15 @@
 
 /*
 TODO:
-	front
-	back
-	begin, cbegin
-	end, cend
-	rbegin, crbegin
-	reserve
-	shrink_to_fit
-	clear
+	Create the iterators for:
+		cbegin
+		cend
+		rbegin, crbegin
+
 	insert
-	emplace
 	erase
+	emplace
 	emplace_back
-	pop_back
-	swap
 */
 
 namespace nids
@@ -42,6 +37,7 @@ namespace nids
 	// static expansion size on push_back expansion
 	const float EXPANSION_SIZE = 3;
 
+	// forward declare the vector_iterator class
 	template<typename Type>
 	class vector_iterator;
 
@@ -51,16 +47,11 @@ namespace nids
 	public:
 		using iterator = vector_iterator<Type>;
 
-		//************************************
-		// End getter method
-		//************************************
-		inline typename iterator end() const noexcept;
-
 		//*****************[ Manager Methods ]
 		//************************************
 		// Default constructor
 		//************************************
-		inline vector() noexcept : m_array(nullptr), m_size(0), m_capacity(0)
+		constexpr vector() noexcept : m_array(nullptr), m_size(0), m_capacity(0), _cap(0)
 		{
 			static_assert(sizeof(Type) != 0);
 			m_array = nullptr;
@@ -73,16 +64,10 @@ namespace nids
 		// without explicitly using the
 		// template parameters
 		//************************************
-		inline vector(size_t size) noexcept : m_array(nullptr), m_size(0), m_capacity(size)
+		constexpr vector(size_t size) noexcept : m_array(nullptr), m_size(0), m_capacity(0), _cap(size)
 		{
 			static_assert(sizeof(Type) != 0);
-			if (m_capacity > 0)
-			{
-				m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
-				assert(m_array != nullptr);
-			}
-			else
-				m_array = nullptr;
+			m_array = nullptr;
 		}
 
 		//************************************
@@ -108,24 +93,25 @@ namespace nids
 		//************************************
 		// Destructor
 		//************************************
-		inline ~vector() noexcept 
+		~vector() noexcept 
 		{
 			m_size = 0;
 			m_capacity = 0;
 			free(m_array);
 			m_array = nullptr;
+			_cap = 0;
 		}
 
 		//****************[ Accessor Methods ]
 		//************************************
 		// Size accessor
 		//************************************
-		inline size_t size() const noexcept { return m_size; }
+		constexpr size_t size() const noexcept { return m_size; }
 
 		//************************************
 		// Capacity accessor
 		//************************************
-		inline size_t capacity() const noexcept { return m_capacity; }
+		constexpr size_t capacity() const noexcept { return m_capacity; }
 
 		//************************************
 		// Const correct subscript operator
@@ -168,7 +154,7 @@ namespace nids
 		//************************************
 		// Array getter
 		//************************************
-		const Type* data() const noexcept { return m_array; }
+		constexpr const Type* data() const noexcept { return m_array; }
 
 		//************************************
 		// Front item getter
@@ -183,7 +169,12 @@ namespace nids
 		//************************************
 		// Begin iterator getter
 		//************************************
-		inline typename iterator begin() noexcept;
+		inline typename iterator begin() const noexcept;
+
+		//************************************
+		// End getter method
+		//************************************
+		inline typename iterator end() const noexcept;
 
 		//*****************[ Mutator Methods ]
 		//************************************
@@ -254,10 +245,69 @@ namespace nids
 		// if necessary
 		//************************************
 		inline void push_back_i(Type&& data) noexcept;
+
+		//************************************
+		// Reserve method
+		//************************************
+		constexpr void reserve(size_t size) noexcept { _cap = size; }
+
+		//************************************
+		// Shrink the vector to m_size
+		//************************************
+		inline void shrink_to_fit() noexcept
+		{
+			Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * m_size));
+			// it is possible for realloc to fail to make
+			// the memory region smaller depending on the
+			// memory allocation strategy
+			if (newRegion == nullptr)
+			{
+				newRegion = static_cast<Type*>(malloc(sizeof(Type) * m_size));
+				assert(newRegion != nullptr);
+				memcpy(newRegion, m_array, sizeof(Type) * m_size);
+				free(m_array);
+				m_array = newRegion;
+			}
+		}
+
+		//************************************
+		// Clear function (m_size = 0)
+		//************************************
+		constexpr void clear() noexcept { m_size = 0; }
+
+		//*************************************
+		// Pop back method (--m_size)
+		//*************************************
+		constexpr void pop_back() noexcept { --m_size; }
+
+		//*************************************
+		// Swap method (transfer values around)
+		//*************************************
+		constexpr void swap(vector<Type>& other)
+		{
+			// save our values
+			Type* _array = m_array;
+			size_t _size = m_size;
+			size_t _capacity = m_size;
+			size_t __cap = _cap;
+
+			// replace our values
+			m_array = other.m_array;
+			m_size = other.m_size;
+			m_capacity = other.m_capacity;
+			_cap = other._cap;
+
+			// overwrite their values
+			other.m_array = _array;
+			other.m_size = _size;
+			other.m_capacity = _capacity;
+			other._cap = __cap;
+		}
 	private:
 		Type* m_array;
 		size_t m_size;
 		size_t m_capacity;
+		size_t _cap;
 	};
 
 	//*************************************
@@ -344,6 +394,13 @@ namespace nids
 	template<typename Type>
 	size_t vector<Type>::resize(size_t size) noexcept
 	{
+		// see what our actual size is
+		if (_cap > size)
+		{
+			size = _cap;
+			_cap = 0;
+		}
+
 		// see if size is equal to zero
 		if (size == 0)
 		{
@@ -381,6 +438,13 @@ namespace nids
 	template<typename Type>
 	size_t vector<Type>::resize(size_t size, const Type& val) noexcept
 	{
+		// see what our actual size is
+		if (_cap > size)
+		{
+			size = _cap;
+			_cap = 0;
+		}
+
 		// see if size is equal to zero
 		if (size == 0)
 		{
@@ -514,7 +578,7 @@ namespace nids
 	// Begin iterator getter
 	//************************************
 	template<typename Type>
-	inline typename vector<Type>::iterator vector<Type>::begin() noexcept
+	inline typename vector<Type>::iterator vector<Type>::begin() const noexcept
 	{
 		if (m_capacity) return vector_iterator(this);
 		return end();
