@@ -7,8 +7,6 @@
 // nathan.ikola@gmail.com
 //**************************************
 
-#include <iostream>
-
 #define MYVEC
 
 #ifdef MYVEC

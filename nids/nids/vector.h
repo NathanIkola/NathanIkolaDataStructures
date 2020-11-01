@@ -24,7 +24,10 @@ TODO:
 	Create the iterators for:
 		cbegin
 		cend
-		rbegin, crbegin
+		rbegin 
+		crbegin
+		rend
+		crend
 
 	insert
 	erase
@@ -487,6 +490,9 @@ namespace nids
 	template<typename Type>
 	inline void vector<Type>::push_back(const Type& data) noexcept
 	{
+		// enforce usage of push_back_i when in debug mode
+		assert(!(&data >= m_array && &data <= m_array + m_capacity));
+
 		// if reallocation is necessary
 		if (m_size < m_capacity)
 		{
@@ -505,6 +511,9 @@ namespace nids
 	template<typename Type>
 	inline void vector<Type>::push_back(Type&& data) noexcept
 	{
+		// enforce usage of push_back_i when in debug mode
+		assert(!(&data >= m_array && &data <= m_array + m_capacity));
+
 		// if reallocation is not necessary
 		if (m_size < m_capacity)
 		{
