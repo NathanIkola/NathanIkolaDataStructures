@@ -28,6 +28,34 @@ TEST(IteratorCreate, CreateIteratorForPopulatedVector)
 	auto end = v.end();
 }
 
+TEST(IteratorCreate, CreateIteratorFromCopy)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	auto iter1 = v.begin();
+	auto iter2{ iter1 };
+}
+
+//**************************************
+// Assignment tests
+//**************************************
+TEST(IteratorAssign, IteratorAssign)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	auto iter1 = v.begin();
+	auto iter2 = v.end();
+	iter1 = iter2;
+}
+
+TEST(IteratorAssign, IteratorMove)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	auto iter1 = v.begin();
+	iter1 = v.end();
+}
+
 //**************************************
 // Dereference tests
 //**************************************
@@ -85,6 +113,49 @@ TEST(IteratorDereference, DereferenceBeginIteratorEmpty)
 	EXPECT_DEATH(*iter, "");
 }
 
+TEST(IteratorDereference, DereferenceClassByPointerOperator)
+{
+	struct A { inline int works() const noexcept { return 1; } };
+
+	nids::vector<A> v;
+	v.push_back(A{});
+	auto iter = v.begin();
+	EXPECT_TRUE(iter->works() == 1);
+}
+
+TEST(IteratorDereference, ConstDereferenceClassByPointerOperator)
+{
+	struct A { inline int works() const noexcept { return 1; } };
+
+	nids::vector<A> v;
+	v.push_back(A{});
+	const auto iter = v.begin();
+	EXPECT_TRUE(iter->works() == 1);
+}
+
+TEST(IteratorDereference, IteratorOffset)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	v.push_back(1500);
+	auto iter = v.begin();
+	++iter;
+	EXPECT_TRUE(iter[1] == 1500);
+	EXPECT_TRUE(iter[-1] == 500);
+}
+
+TEST(IteratorDereference, ConstIteratorOffset)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	v.push_back(1500);
+	const auto iter = ++v.begin();
+	EXPECT_TRUE(iter[1] == 1500);
+	EXPECT_TRUE(iter[-1] == 500);
+}
+
 //**************************************
 // Increment tests
 //**************************************
@@ -116,6 +187,50 @@ TEST(IteratorIncrement, IncrementIteratorPastEnd)
 	EXPECT_DEATH(++iter, "");
 }
 
+TEST(IteratorIncrement, IncrementIteratorPost)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	auto iter = v.begin();
+	auto iter2 = iter;
+	EXPECT_TRUE(iter2 == iter++);
+	EXPECT_TRUE(iter == v.end());
+}
+
+TEST(IteratorIncrement, NextIterator)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	auto iter1 = v.begin();
+	auto iter2 = iter1++;
+	EXPECT_TRUE(iter1 == iter2.next());
+}
+
+TEST(IteratorIncrement, PlusIterator)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	v.push_back(1500);
+	auto iter = v.begin();
+	iter = iter + 1;
+	EXPECT_TRUE(*iter == 1000);
+	iter = 1 + iter;
+	EXPECT_TRUE(*iter = 1500);
+}
+
+TEST(IteratorIncrement, PlusEqualsIterator)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	v.push_back(1500);
+	auto iter = v.begin();
+	iter += 2;
+	EXPECT_TRUE(*iter == 1500);
+}
+
 //**************************************
 // Decrement tests
 //**************************************
@@ -145,6 +260,65 @@ TEST(IteratorDecrement, DecrementIteratorPastBegin)
 	v.push_back(500);
 	auto iter = v.begin();
 	EXPECT_DEATH(--iter, "");
+}
+
+TEST(IteratorDecrement, DecrementIteratorPost)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	auto iter = v.begin();
+	++iter;
+	auto iter2 = iter;
+	EXPECT_TRUE(iter2 == iter--);
+	EXPECT_TRUE(iter == v.begin());
+}
+
+TEST(IteratorDecrement, PreviousIterator)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	auto iter = v.begin();
+	auto iter2 = iter;
+	++iter;
+	EXPECT_TRUE(iter2 == iter.previous());
+}
+
+TEST(IteratorDecrement, MinusIterator)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	v.push_back(1500);
+	auto iter = v.begin();
+	++iter;
+	iter = iter - 1;
+	EXPECT_TRUE(*iter == 500);
+}
+
+TEST(IteratorDecrement, MinusEqualsIterator)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	v.push_back(1500);
+	auto iter = v.begin();
+	iter += 2;
+	iter -= 1;
+	EXPECT_TRUE(*iter == 1000);
+}
+
+TEST(IteratorDecrement, MinusTwoIterators)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	v.push_back(1000);
+	v.push_back(1500);
+	auto iter1 = v.begin();
+	auto iter2 = iter1;
+	iter1 += 2;
+	EXPECT_TRUE(iter1 - iter2 == 2);
 }
 
 //**************************************
@@ -206,4 +380,26 @@ TEST(IteratorEquality, IteratorsHaveDifferentVectors)
 	nids::vector<int> w;
 	v.push_back(1000);
 	EXPECT_FALSE(v.begin() == w.begin());
+}
+
+TEST(IteratorEquality, BeginLessThanEnd)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	EXPECT_TRUE(v.begin() < v.end());
+	EXPECT_FALSE(v.end() < v.begin());
+	EXPECT_FALSE(v.begin() < v.begin());
+	EXPECT_TRUE(v.end() > v.begin());
+	EXPECT_FALSE(v.begin() > v.end());
+	EXPECT_FALSE(v.begin() > v.begin());
+}
+
+TEST(IteratorEquality, EqualityOfEqualIterators)
+{
+	nids::vector<int> v;
+	v.push_back(500);
+	EXPECT_TRUE(v.begin() <= v.begin());
+	EXPECT_TRUE(v.begin() <= v.end());
+	EXPECT_TRUE(v.end() >= v.end());
+	EXPECT_TRUE(v.end() >= v.begin());
 }

@@ -93,7 +93,7 @@ namespace nids
 		//******************************
 		// Increment operator (postfix)
 		//******************************
-		inline vector_iterator<Type>& operator++(int) noexcept 
+		inline vector_iterator<Type> operator++(int) noexcept 
 		{
 			vector_iterator<Type> _r = *this;
 			assert(m_cursor != m_vector->back() + 1);
@@ -114,7 +114,7 @@ namespace nids
 		//******************************
 		// Decrement operator (postfix)
 		//******************************
-		inline vector_iterator<Type>& operator--(int) noexcept
+		inline vector_iterator<Type> operator--(int) noexcept
 		{
 			assert(m_cursor != m_vector->front());
 			vector_iterator<Type> _r = *this;
@@ -125,20 +125,29 @@ namespace nids
 		//******************************
 		// Next index method
 		//******************************
-		inline vector_iterator<Type>& next() noexcept { return this->operator++(); }
+		inline vector_iterator<Type> next() const noexcept 
+		{ 
+			vector_iterator<Type> v{ *this };
+			return ++v;
+		}
 
 		//******************************
 		// Previous index method
 		//******************************
-		inline vector_iterator<Type>& previous() noexcept { return this->operator--(); }
+		inline vector_iterator<Type> previous()const  noexcept 
+		{ 
+			vector_iterator<Type> v{ *this };
+			return --v; 
+		}
 
 		//******************************
-		// Addition operator
+		// Addition operator (int)
 		//******************************
-		inline vector_iterator<Type> operator+(int amount) noexcept
+		inline vector_iterator<Type> operator+(int amount) const noexcept
 		{
 			vector_iterator<Type> v{ *this };
 			v.m_cursor += amount;
+			return v;
 		}
 
 		//******************************
@@ -157,6 +166,15 @@ namespace nids
 		{
 			vector_iterator<Type> v{ *this };
 			v.m_cursor -= amount;
+			return v;
+		}
+
+		//******************************
+		// Subtraction operator (iter)
+		//******************************
+		inline size_t operator-(const vector_iterator<Type>& rhs)
+		{
+			return m_cursor - rhs.m_cursor;
 		}
 
 		//******************************
@@ -177,7 +195,7 @@ namespace nids
 		//******************************
 		// Comparison operator (NOT)
 		//******************************
-		inline bool operator!=(const vector_iterator<Type>& rhs) const noexcept { return !(*this == rhs); }
+		inline bool operator!=(const vector_iterator<Type>& rhs) const noexcept { return m_cursor != rhs.m_cursor; }
 
 		//******************************
 		// LT operator
@@ -223,17 +241,23 @@ namespace nids
 		// Pointer operator 
 		// (const correct)
 		//******************************
-		inline const Type& operator->() const noexcept { return operator*(); }
+		inline const Type* operator->() const noexcept { return m_cursor; }
 
 		//******************************
 		// Pointer operator
 		//******************************
-		inline Type& operator->() noexcept { return operator*(); }
+		inline Type* operator->() noexcept { return m_cursor; }
 
 		//******************************
 		// Offset subscript operator
 		//******************************
-		inline Type& operator[](int offset) { return m_cursor[offset]; }
+		inline Type& operator[](int offset) noexcept { return m_cursor[offset]; }
+
+		//******************************
+		// Offset subscript operator
+		// (const correct)
+		//******************************
+		inline const Type& operator[](int offset) const noexcept { return m_cursor[offset]; }
 
 		//************[ Static Methods ]
 		//******************************
@@ -250,4 +274,13 @@ namespace nids
 		const vector<Type>* m_vector;
 		Type* m_cursor;
 	};
+
+	//******************************
+	// Addition operator overload
+	//******************************
+	template<typename Type>
+	inline vector_iterator<Type> operator+(int amount, const vector_iterator<Type>& iter) noexcept
+	{
+		return iter + amount;
+	}
 }
