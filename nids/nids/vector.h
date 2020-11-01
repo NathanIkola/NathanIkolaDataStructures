@@ -23,7 +23,6 @@
 TODO:
 	front
 	back
-	data?
 	begin, cbegin
 	end, cend
 	rbegin, crbegin
@@ -55,7 +54,7 @@ namespace nids
 		//************************************
 		// End getter method
 		//************************************
-		inline constexpr typename iterator end() const noexcept;
+		inline typename iterator end() const noexcept;
 
 		//*****************[ Manager Methods ]
 		//************************************
@@ -165,6 +164,21 @@ namespace nids
 		// Empty status getter
 		//************************************
 		inline bool empty() const noexcept { return m_size == 0; }
+
+		//************************************
+		// Array getter
+		//************************************
+		const Type* data() const noexcept { return m_array; }
+
+		//************************************
+		// Front item getter
+		//************************************
+		inline Type* front() const noexcept { return m_array; }
+
+		//************************************
+		// Back item getter
+		//************************************
+		inline Type* back() const noexcept { return &m_array[m_size - 1]; }
 
 		//************************************
 		// Begin iterator getter
@@ -510,8 +524,8 @@ namespace nids
 	// End getter method
 	//************************************
 	template<typename Type>
-	inline constexpr typename vector<Type>::iterator vector<Type>::end() const noexcept
+	inline typename vector<Type>::iterator vector<Type>::end() const noexcept
 	{
-		return iterator::end();
+		return vector_iterator<Type>::end(this);
 	}
 }
