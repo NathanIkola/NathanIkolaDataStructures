@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="graph.h" />
     <ClInclude Include="node.h" />
+    <ClInclude Include="runtime_assert.h" />
     <ClInclude Include="vector.h" />
     <ClInclude Include="vector_iterator.h" />
   </ItemGroup>

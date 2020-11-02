@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utility>
+#include "runtime_assert.h"
 
 /*
 TODO:
@@ -121,7 +122,7 @@ namespace nids
 		//************************************
 		inline const Type& operator[](size_t index) const noexcept
 		{
-			assert(index < m_size);
+			runtime_assert(index < m_size);
 			return m_array[index];
 		}
 
@@ -130,7 +131,7 @@ namespace nids
 		//************************************
 		inline Type& operator[](size_t index) noexcept
 		{
-			assert(index < m_size);
+			runtime_assert(index < m_size);
 			return m_array[index];
 		}
 
@@ -266,7 +267,7 @@ namespace nids
 			if (newRegion == nullptr)
 			{
 				newRegion = static_cast<Type*>(malloc(sizeof(Type) * m_size));
-				assert(newRegion != nullptr);
+				runtime_assert(newRegion != nullptr);
 				memcpy(newRegion, m_array, sizeof(Type) * m_size);
 				free(m_array);
 				m_array = newRegion;
@@ -320,9 +321,9 @@ namespace nids
 	inline vector<Type>::vector(const vector& rhs) noexcept
 		: m_array(nullptr), m_size(rhs.m_size), m_capacity(rhs.m_capacity)
 	{
-		assert(rhs.m_capacity > 0);
+		runtime_assert(rhs.m_capacity > 0);
 		m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
-		assert(m_array != nullptr);
+		runtime_assert(m_array != nullptr);
 		memcpy(m_array, rhs.m_array, sizeof(Type) * m_size);
 	}
 
@@ -333,7 +334,7 @@ namespace nids
 	inline vector<Type>::vector(vector&& rhs) noexcept
 		: m_array(rhs.m_array), m_size(rhs.m_size), m_capacity(rhs.m_capacity)
 	{
-		assert(rhs.m_capacity > 0);
+		runtime_assert(rhs.m_capacity > 0);
 		rhs.m_array = nullptr;
 		rhs.m_capacity = 0;
 		rhs.m_size = 0;
@@ -345,7 +346,7 @@ namespace nids
 	template<typename Type>
 	inline vector<Type>& vector<Type>::operator=(const vector& rhs) noexcept
 	{
-		assert(rhs.m_capacity > 0);
+		runtime_assert(rhs.m_capacity > 0);
 		if (this != &rhs)
 		{
 			// avoid allocating space if we can help it
@@ -357,7 +358,7 @@ namespace nids
 				{
 					free(m_array);
 					newRegion = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
-					assert(newRegion != nullptr);
+					runtime_assert(newRegion != nullptr);
 				}
 				m_array = newRegion;
 			}
@@ -375,7 +376,7 @@ namespace nids
 	template<typename Type>
 	inline vector<Type>& vector<Type>::operator=(vector&& rhs) noexcept
 	{
-		assert(rhs.m_capacity > 0);
+		runtime_assert(rhs.m_capacity > 0);
 		if (this != &rhs)
 		{
 			// purge the left hand side
@@ -490,7 +491,9 @@ namespace nids
 	template<typename Type>
 	inline void vector<Type>::push_back(const Type& data) noexcept
 	{
-		// enforce usage of push_back_i when in debug mode
+		// if this assert fails, prefer the use of push_back_i
+		// as it is safe for values that come from the vector's
+		// internal array
 		assert(!(&data >= m_array && &data <= m_array + m_capacity));
 
 		// if reallocation is necessary
@@ -512,7 +515,7 @@ namespace nids
 	inline void vector<Type>::push_back(Type&& data) noexcept
 	{
 		// enforce usage of push_back_i when in debug mode
-		assert(!(&data >= m_array && &data <= m_array + m_capacity));
+		runtime_assert(!(&data >= m_array && &data <= m_array + m_capacity));
 
 		// if reallocation is not necessary
 		if (m_size < m_capacity)

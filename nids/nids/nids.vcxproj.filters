@@ -36,6 +36,9 @@
     <ClInclude Include="vector_iterator.h">
       <Filter>Header Files\Vector</Filter>
     </ClInclude>
+    <ClInclude Include="runtime_assert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

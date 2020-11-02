@@ -22,7 +22,7 @@ const int NUM_ELEMENTS = 1000000000;
 
 int main()
 {
-	vector<int> v;
+	vector<int> v(1000000000);
 
 	for (int element{ 0 }; element < NUM_ELEMENTS; ++element)
 	{

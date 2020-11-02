@@ -19,7 +19,7 @@ namespace nids
 		//******************************
 		inline vector_iterator(const vector<Type>* vector) noexcept : m_vector(vector), m_cursor(nullptr) 
 		{ 
-			assert(m_vector != nullptr);
+			runtime_assert(m_vector != nullptr);
 			if(m_vector->capacity() != 0)
 				m_cursor = &(const_cast<nids::vector<Type>*>(vector)->at(0));
 		}
@@ -29,7 +29,7 @@ namespace nids
 		//******************************
 		inline vector_iterator(const vector_iterator<Type>& rhs) noexcept : m_vector(rhs.m_vector), m_cursor(rhs.m_cursor) 
 		{ 
-			assert(m_vector != nullptr);
+			runtime_assert(m_vector != nullptr);
 		}
 
 		//******************************
@@ -45,7 +45,7 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator=(const vector_iterator<Type>& rhs) noexcept
 		{
-			assert(rhs.m_vector != nullptr);
+			runtime_assert(rhs.m_vector != nullptr);
 			if (&rhs != this)
 			{
 				m_vector = rhs.m_vector;
@@ -59,7 +59,7 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator=(vector_iterator<Type>&& rhs) noexcept
 		{
-			assert(rhs.m_vector != nullptr);
+			runtime_assert(rhs.m_vector != nullptr);
 			if (&rhs != this)
 			{
 				m_vector = rhs.m_vector;
@@ -85,7 +85,7 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator++() noexcept 
 		{
-			assert(m_cursor != m_vector->back() + 1);
+			runtime_assert(m_cursor != m_vector->back() + 1);
 			++m_cursor;
 			return *this;
 		}
@@ -96,7 +96,7 @@ namespace nids
 		inline vector_iterator<Type> operator++(int) noexcept 
 		{
 			vector_iterator<Type> _r = *this;
-			assert(m_cursor != m_vector->back() + 1);
+			runtime_assert(m_cursor != m_vector->back() + 1);
 			++m_cursor;
 			return _r;
 		}
@@ -106,7 +106,7 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator--() noexcept
 		{
-			assert(m_cursor != m_vector->front());
+			runtime_assert(m_cursor != m_vector->front());
 			--m_cursor;
 			return *this;
 		}
@@ -116,7 +116,7 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type> operator--(int) noexcept
 		{
-			assert(m_cursor != m_vector->front());
+			runtime_assert(m_cursor != m_vector->front());
 			vector_iterator<Type> _r = *this;
 			--m_cursor;
 			return _r;
@@ -224,7 +224,7 @@ namespace nids
 		//******************************
 		inline const Type& operator*() const noexcept 
 		{
-			assert(m_cursor != m_vector->back() + 1);
+			runtime_assert(m_cursor != m_vector->back() + 1);
 			return *m_cursor;
 		}
 
@@ -233,7 +233,7 @@ namespace nids
 		//******************************
 		inline Type& operator*() noexcept 
 		{
-			assert(m_cursor != m_vector->back() + 1);
+			runtime_assert(m_cursor != m_vector->back() + 1);
 			return *m_cursor;
 		}
 
