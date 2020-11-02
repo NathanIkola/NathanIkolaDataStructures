@@ -22,6 +22,8 @@
 
 /*
 TODO:
+	Create specialization for bool type
+
 	Create the iterators for:
 		cbegin
 		cend
@@ -99,11 +101,11 @@ namespace nids
 		//************************************
 		~vector() noexcept 
 		{
-			m_size = 0;
+			clear();
 			m_capacity = 0;
+			_cap = 0;
 			free(m_array);
 			m_array = nullptr;
-			_cap = 0;
 		}
 
 		//****************[ Accessor Methods ]
@@ -270,14 +272,21 @@ namespace nids
 				runtime_assert(newRegion != nullptr);
 				memcpy(newRegion, m_array, sizeof(Type) * m_size);
 				free(m_array);
-				m_array = newRegion;
 			}
+			m_array = newRegion;
 		}
 
 		//************************************
 		// Clear function (m_size = 0)
 		//************************************
-		constexpr void clear() noexcept { m_size = 0; }
+		constexpr void clear() noexcept 
+		{ 
+			// loop through and destroy all instances in this class
+			if (!std::is_fundamental<Type>::value)
+				for (int index{ 0 }; index < m_size; ++index)
+					m_array[index].~Type();
+			m_size = 0;
+		}
 
 		//*************************************
 		// Pop back method (--m_size)
@@ -319,7 +328,7 @@ namespace nids
 	//*************************************
 	template<typename Type>
 	inline vector<Type>::vector(const vector& rhs) noexcept
-		: m_array(nullptr), m_size(rhs.m_size), m_capacity(rhs.m_capacity)
+		: m_array(nullptr), m_size(rhs.m_size), m_capacity(rhs.m_capacity), _cap(rhs._cap)
 	{
 		runtime_assert(rhs.m_capacity > 0);
 		m_array = static_cast<Type*>(malloc(sizeof(Type) * m_capacity));
@@ -332,12 +341,13 @@ namespace nids
 	//**********************************
 	template<typename Type>
 	inline vector<Type>::vector(vector&& rhs) noexcept
-		: m_array(rhs.m_array), m_size(rhs.m_size), m_capacity(rhs.m_capacity)
+		: m_array(rhs.m_array), m_size(rhs.m_size), m_capacity(rhs.m_capacity), _cap(rhs._cap)
 	{
 		runtime_assert(rhs.m_capacity > 0);
 		rhs.m_array = nullptr;
 		rhs.m_capacity = 0;
 		rhs.m_size = 0;
+		rhs._cap = 0;
 	}
 
 	//**********************************
@@ -365,6 +375,8 @@ namespace nids
 
 			// deep copy rhs
 			m_size = rhs.m_size;
+			m_capacity = rhs.m_capacity;
+			_cap = rhs._cap;
 			memcpy(m_array, rhs.m_array, sizeof(Type) * m_size);
 		}
 		return *this;
@@ -388,6 +400,7 @@ namespace nids
 			rhs.m_array = nullptr;
 			rhs.m_capacity = 0;
 			rhs.m_size = 0;
+			rhs._cap = 0;
 		}
 		return *this;
 	}

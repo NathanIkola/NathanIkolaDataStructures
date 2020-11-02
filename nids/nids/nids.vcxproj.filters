@@ -22,6 +22,9 @@
     <Filter Include="Resource Files\Documentation">
       <UniqueIdentifier>{6c0a4049-f4c5-4c29-b5e6-455d8a0e2e16}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utility">
+      <UniqueIdentifier>{3fe21002-93b1-4329-b7f6-c0280091fe35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graph.h">
@@ -37,7 +40,7 @@
       <Filter>Header Files\Vector</Filter>
     </ClInclude>
     <ClInclude Include="runtime_assert.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
