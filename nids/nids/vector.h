@@ -366,7 +366,7 @@ namespace nids
 		// which causes issues with the second
 		// overload when Type is also integral
 		//*************************************
-		template<typename InputIterator, typename = std::enable_if<!std::is_trivial<InputIterator>::value || std::is_pointer<InputIterator>::value>::type>
+		template<typename InputIterator, typename = std::enable_if<!std::is_integral<InputIterator>::value || std::is_pointer<InputIterator>::value>::type>
 		typename iterator insert(iterator position, InputIterator first, InputIterator last) noexcept;
 	private:
 		Type* m_array;
@@ -622,7 +622,7 @@ namespace nids
 		}
 
 		if (m_capacity == 0) ++m_capacity;
-		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		expand(m_capacity * EXPANSION_SIZE);
 		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
 	}
@@ -644,7 +644,7 @@ namespace nids
 		}
 
 		if (m_capacity == 0) ++m_capacity;
-		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		expand(m_capacity * EXPANSION_SIZE);
 		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
 	}
@@ -667,11 +667,11 @@ namespace nids
 		{
 			size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
 			runtime_assert(m_capacity != m_size);
-			expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			expand(m_capacity * EXPANSION_SIZE);
 			m_array[m_size++] = m_array[_cached_index];
 			return;
 		}
-		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		expand(m_capacity * EXPANSION_SIZE);
 		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
 	}
@@ -694,12 +694,12 @@ namespace nids
 		else if (&data >= m_array && &data <= m_array + m_capacity)
 		{
 			size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
-			expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			expand(m_capacity * EXPANSION_SIZE);
 			runtime_assert(m_capacity != m_size);
 			m_array[m_size++] = std::move(m_array[_cached_index]);
 			return;
 		}
-		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		expand(m_capacity * EXPANSION_SIZE);
 		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
 	}
@@ -725,7 +725,7 @@ namespace nids
 		}
 
 		size_t distance_from_start = pos - m_array;
-		expand(m_size * static_cast<size_t>(EXPANSION_SIZE));
+		expand(m_size * EXPANSION_SIZE);
 		runtime_assert(m_size < m_capacity);
 
 		// position is now invalid, so overwrite it
@@ -807,7 +807,7 @@ namespace nids
 		for (int index{ 0 }; first < last; ++index, ++first)
 			*(pos + index) = *first;
 		m_size += num_elements;
-		position = begin() + distance_from_start;
+		position = begin() + static_cast<int>(distance_from_start);
 		return position;
 	}
 }
