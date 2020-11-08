@@ -41,7 +41,7 @@ TODO:
 namespace nids
 {
 	// static expansion size on push_back expansion
-	const float EXPANSION_SIZE = 3;
+	const size_t EXPANSION_SIZE = 3;
 
 	// forward declare the vector_iterator class
 	template<typename Type>
@@ -59,7 +59,6 @@ namespace nids
 		//************************************
 		constexpr vector() noexcept : m_array(nullptr), m_size(0), m_capacity(0), _cap(0)
 		{
-			static_assert(sizeof(Type) != 0);
 			m_array = nullptr;
 		}
 
@@ -72,7 +71,6 @@ namespace nids
 		//************************************
 		constexpr vector(size_t size) noexcept : m_array(nullptr), m_size(0), m_capacity(0), _cap(size)
 		{
-			static_assert(sizeof(Type) != 0);
 			m_array = nullptr;
 		}
 
@@ -184,13 +182,24 @@ namespace nids
 
 		//*****************[ Mutator Methods ]
 		//************************************
-		// Resize method
+		// Expand method
 		//
 		// Resizes the vector and does not
 		// initialize the new data members
 		//
 		// Returns new capacity, or old
 		// capacity if unchanged
+		//************************************
+		size_t expand(size_t size) noexcept;
+
+		//************************************
+		// Resize method
+		//
+		// Resizes the vector and initializes
+		// the data to the default value
+		// 
+		// Returns new size, or old size
+		// if unchanged
 		//************************************
 		size_t resize(size_t size) noexcept;
 
@@ -200,8 +209,8 @@ namespace nids
 		// Resizes the vector and initializes
 		// the data to the value of val
 		// 
-		// Returns new capacity, or old
-		// capacity if unchanged
+		// Returns new size, or old size
+		// if unchanged
 		//************************************
 		size_t resize(size_t size, const Type& val) noexcept;
 
@@ -255,7 +264,20 @@ namespace nids
 		//************************************
 		// Reserve method
 		//************************************
-		constexpr void reserve(size_t size) noexcept { _cap = size; }
+		constexpr void reserve(size_t size) noexcept 
+		{ 
+			if (size > capacity) expand(size);
+		}
+
+		//************************************
+		// Reserve method
+		// (deferred allocation)
+		// 
+		// Defers allocation to size until
+		// the next time that the vector would
+		// normally resize
+		//************************************
+		constexpr void reserve_d(size_t size) noexcept { _cap = size; }
 
 		//************************************
 		// Shrink the vector to m_size
@@ -277,7 +299,7 @@ namespace nids
 		}
 
 		//************************************
-		// Clear function (m_size = 0)
+		// Clear function
 		//************************************
 		constexpr void clear() noexcept 
 		{ 
@@ -291,7 +313,13 @@ namespace nids
 		//*************************************
 		// Pop back method (--m_size)
 		//*************************************
-		constexpr void pop_back() noexcept { --m_size; }
+		constexpr void pop_back() noexcept 
+		{
+			runtime_assert(m_size != 0);
+			--m_size;
+			if (!std::is_fundamental<Type>::value)
+				m_array[m_size].~Type();
+		}
 
 		//*************************************
 		// Swap method (transfer values around)
@@ -409,7 +437,7 @@ namespace nids
 	// Resize method (no initialization)
 	//**********************************
 	template<typename Type>
-	size_t vector<Type>::resize(size_t size) noexcept
+	size_t vector<Type>::expand(size_t size) noexcept
 	{
 		// see what our actual size is
 		if (_cap > size)
@@ -453,8 +481,11 @@ namespace nids
 	// Resize method (initialization)
 	//**********************************
 	template<typename Type>
-	size_t vector<Type>::resize(size_t size, const Type& val) noexcept
+	size_t vector<Type>::resize(size_t size) noexcept
 	{
+		// default initialize
+		Type val{};
+
 		// see what our actual size is
 		if (_cap > size)
 		{
@@ -466,6 +497,7 @@ namespace nids
 		if (size == 0)
 		{
 			m_capacity = 0;
+			m_size = 0;
 			free(m_array);
 			m_array = nullptr;
 			return 0;
@@ -493,8 +525,56 @@ namespace nids
 
 		// this is still required in case size < m_capacity
 		m_capacity = size;
-		if (m_capacity < m_size)
-			m_size = m_capacity;
+		m_size = m_capacity;
+		return m_capacity;
+	}
+
+	//**********************************
+	// Resize method (initialization)
+	//**********************************
+	template<typename Type>
+	size_t vector<Type>::resize(size_t size, const Type& val) noexcept
+	{
+		// see what our actual size is
+		if (_cap > size)
+		{
+			size = _cap;
+			_cap = 0;
+		}
+
+		// see if size is equal to zero
+		if (size == 0)
+		{
+			m_capacity = 0;
+			m_size;
+			free(m_array);
+			m_array = nullptr;
+			return 0;
+		}
+
+		Type* newRegion = static_cast<Type*>(realloc(m_array, sizeof(Type) * size));
+
+		// if realloc failed
+		if (newRegion == nullptr)
+		{
+			newRegion = static_cast<Type*>(malloc(sizeof(Type) * size));
+			if (newRegion == nullptr)
+				return m_capacity;
+
+			// copy the old data
+			memcpy(newRegion, m_array, sizeof(Type) * m_size);
+			free(m_array);
+		}
+
+		m_array = newRegion;
+
+		// initialize the new data
+		for (; m_capacity < size; ++m_capacity)
+			m_array[m_capacity] = val;
+
+		// this is still required in case size < m_capacity
+		m_capacity = size;
+		m_size = m_capacity;
 		return m_capacity;
 	}
 
@@ -517,7 +597,8 @@ namespace nids
 		}
 
 		if (m_capacity == 0) ++m_capacity;
-		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
 	}
 
@@ -538,7 +619,8 @@ namespace nids
 		}
 
 		if (m_capacity == 0) ++m_capacity;
-		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
 	}
 
@@ -559,11 +641,13 @@ namespace nids
 		else if (&data >= m_array && &data <= m_array + m_capacity)
 		{
 			size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
-			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			runtime_assert(m_capacity != m_size);
+			expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 			m_array[m_size++] = m_array[_cached_index];
 			return;
 		}
-		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
 	}
 
@@ -585,11 +669,13 @@ namespace nids
 		else if (&data >= m_array && &data <= m_array + m_capacity)
 		{
 			size_t _cached_index = static_cast<size_t>(&data - &m_array[0]);
-			resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+			runtime_assert(m_capacity != m_size);
 			m_array[m_size++] = std::move(m_array[_cached_index]);
 			return;
 		}
-		resize(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
+		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
 	}
 }
@@ -605,7 +691,7 @@ namespace nids
 	template<typename Type>
 	inline typename vector<Type>::iterator vector<Type>::begin() const noexcept
 	{
-		if (m_capacity) return vector_iterator(this);
+		if (m_capacity) return vector_iterator<Type>(this);
 		return end();
 	}
 

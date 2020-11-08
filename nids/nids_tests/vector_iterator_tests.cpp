@@ -8,7 +8,8 @@
 // nathan.ikola@gmail.com
 //**************************************
 
-#include "pch.h"
+#include <gtest/gtest.h>
+#include "../nids/vector.h"
 
 //**************************************
 // Creation tests

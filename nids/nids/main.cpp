@@ -20,11 +20,11 @@ using std::vector;
 #endif
 #include "vector.h"
 
-const int NUM_ELEMENTS = 10;
+const int NUM_ELEMENTS = 1500000000;
 
 int main()
 {
-	vector<int> v;
+	vector<int> v(NUM_ELEMENTS);
 
 	for (int element{ 0 }; element < NUM_ELEMENTS; ++element)
 	{
