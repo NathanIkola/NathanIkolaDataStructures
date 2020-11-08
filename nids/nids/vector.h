@@ -344,6 +344,25 @@ namespace nids
 			other.m_capacity = _capacity;
 			other._cap = __cap;
 		}
+
+		//*************************************
+		// Insert a single element
+		//*************************************
+		typename iterator insert(iterator position, const Type& val) noexcept;
+
+		//*************************************
+		// Fill a number of elements with a
+		// specified value
+		//*************************************
+		template<typename Iterator>
+		Iterator insert(Iterator position, size_t num_elements, const Type& val) noexcept;
+
+		//*************************************
+		// Insert a range of values from a
+		// different vector
+		//*************************************
+		template<typename Iterator, typename InputIterator>
+		Iterator insert(Iterator position, InputIterator first, InputIterator last) noexcept;
 	private:
 		Type* m_array;
 		size_t m_size;
@@ -450,6 +469,7 @@ namespace nids
 		if (size == 0)
 		{
 			m_capacity = 0;
+			m_size = 0;
 			free(m_array);
 			m_array = nullptr;
 			return 0;
@@ -677,6 +697,61 @@ namespace nids
 		expand(static_cast<size_t>(m_capacity * EXPANSION_SIZE));
 		runtime_assert(m_capacity != m_size);
 		m_array[m_size++] = data;
+	}
+
+	//*************************************
+	// Insert a single element
+	//*************************************
+	template<typename Type>
+	inline typename vector<Type>::iterator vector<Type>::insert(typename vector<Type>::iterator position, const Type& val) noexcept
+	{
+		// get the address of the place we are inserting and our end
+		Type* pos = position;
+		size_t distance_to_end = (&m_array[m_size - 1] - pos) + 1;
+
+		// see if the vector has room
+		if (m_size < m_capacity)
+		{
+			// copy the memory over one spot
+			memmove(pos + 1, pos, distance_to_end * sizeof(Type));
+			*pos = val;
+			++m_size;
+			return position;
+		}
+
+		size_t distance_from_start = pos - m_array;
+		expand(m_capacity * static_cast<size_t>(EXPANSION_SIZE));
+		runtime_assert(m_size != m_capacity);
+
+		// position is now invalid, so overwrite it
+		pos = &m_array[distance_from_start];
+		memmove(pos + 1, pos, distance_to_end * sizeof(Type));
+		m_array[distance_from_start] = val;
+		++m_size;
+		position = begin() + distance_from_start;
+		return position;
+	}
+
+	//*************************************
+	// Fill a number of elements with a
+	// specified value
+	//*************************************
+	template<typename Type>
+	template<typename Iterator>
+	inline Iterator vector<Type>::insert(Iterator position, size_t num_elements, const Type& val) noexcept
+	{
+		return Iterator();
+	}
+
+	//*************************************
+	// Insert a range of values from a
+	// different vector
+	//*************************************
+	template<typename Type>
+	template<typename Iterator, typename InputIterator>
+	inline Iterator vector<Type>::insert(Iterator position, InputIterator first, InputIterator last) noexcept
+	{
+		return Iterator();
 	}
 }
 

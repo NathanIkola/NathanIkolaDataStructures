@@ -259,6 +259,8 @@ namespace nids
 		//******************************
 		inline const Type& operator[](int offset) const noexcept { return m_cursor[offset]; }
 
+		operator Type* () { return m_cursor; }
+
 		//************[ Static Methods ]
 		//******************************
 		// End getter
