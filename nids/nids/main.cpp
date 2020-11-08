@@ -32,9 +32,11 @@ int main()
 	}
 	v.shrink_to_fit();
 
-	auto iter = v.begin() + 2;
+	int arr[] = {501, 502, 503};
 
-	v.insert(v.end(), 21);
+	auto iter = v.begin() + 7;
+
+	v.insert(iter, arr, arr+3);
 
 	for (int& i : v)
 	{

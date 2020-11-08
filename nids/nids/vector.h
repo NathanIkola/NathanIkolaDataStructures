@@ -32,7 +32,6 @@ TODO:
 		rend
 		crend
 
-	insert
 	erase
 	emplace
 	emplace_back
@@ -295,6 +294,7 @@ namespace nids
 				memcpy(newRegion, m_array, sizeof(Type) * m_size);
 				free(m_array);
 			}
+			m_capacity = m_size;
 			m_array = newRegion;
 		}
 
@@ -354,15 +354,20 @@ namespace nids
 		// Fill a number of elements with a
 		// specified value
 		//*************************************
-		template<typename Iterator>
-		Iterator insert(Iterator position, size_t num_elements, const Type& val) noexcept;
+		typename iterator insert(iterator position, size_t num_elements, const Type& val) noexcept;
 
 		//*************************************
 		// Insert a range of values from a
 		// different vector
+		//
+		// Uses SFINAE to disable this function
+		// if non-pointer integral types are
+		// inferred as the template parameter,
+		// which causes issues with the second
+		// overload when Type is also integral
 		//*************************************
-		template<typename Iterator, typename InputIterator>
-		Iterator insert(Iterator position, InputIterator first, InputIterator last) noexcept;
+		template<typename InputIterator, typename = std::enable_if<!std::is_trivial<InputIterator>::value || std::is_pointer<InputIterator>::value>::type>
+		typename iterator insert(iterator position, InputIterator first, InputIterator last) noexcept;
 	private:
 		Type* m_array;
 		size_t m_size;
@@ -703,7 +708,7 @@ namespace nids
 	// Insert a single element
 	//*************************************
 	template<typename Type>
-	inline typename vector<Type>::iterator vector<Type>::insert(typename vector<Type>::iterator position, const Type& val) noexcept
+	inline typename vector<Type>::iterator vector<Type>::insert(iterator position, const Type& val) noexcept
 	{
 		// get the address of the place we are inserting and our end
 		Type* pos = position;
@@ -712,7 +717,7 @@ namespace nids
 		// see if the vector has room
 		if (m_size < m_capacity)
 		{
-			// copy the memory over one spot
+			// copy the memory over the number of spots we wanted
 			memmove(pos + 1, pos, distance_to_end * sizeof(Type));
 			*pos = val;
 			++m_size;
@@ -720,13 +725,13 @@ namespace nids
 		}
 
 		size_t distance_from_start = pos - m_array;
-		expand(m_capacity * static_cast<size_t>(EXPANSION_SIZE));
-		runtime_assert(m_size != m_capacity);
+		expand(m_size * static_cast<size_t>(EXPANSION_SIZE));
+		runtime_assert(m_size < m_capacity);
 
 		// position is now invalid, so overwrite it
 		pos = &m_array[distance_from_start];
 		memmove(pos + 1, pos, distance_to_end * sizeof(Type));
-		m_array[distance_from_start] = val;
+		*pos = val;
 		++m_size;
 		position = begin() + distance_from_start;
 		return position;
@@ -737,10 +742,36 @@ namespace nids
 	// specified value
 	//*************************************
 	template<typename Type>
-	template<typename Iterator>
-	inline Iterator vector<Type>::insert(Iterator position, size_t num_elements, const Type& val) noexcept
+	inline typename vector<Type>::iterator vector<Type>::insert(iterator position, size_t num_elements, const Type& val) noexcept
 	{
-		return Iterator();
+		if (num_elements == 0) return position;
+		// get the address of the place we are inserting and our end
+		Type* pos = position;
+		size_t distance_to_end = (&m_array[m_size - 1] - pos) + 1;
+
+		// see if the vector has room
+		if ((m_size + num_elements) <= m_capacity)
+		{
+			// copy the memory over the number of spots we wanted
+			memmove(pos + num_elements, pos, distance_to_end * sizeof(Type));
+			for (int element{ 0 }; element < num_elements; ++element)
+				*(pos + element) = val;
+			m_size += num_elements;
+			return position;
+		}
+
+		size_t distance_from_start = pos - m_array;
+		expand(m_size + num_elements);
+		runtime_assert(m_size + num_elements <= m_capacity);
+
+		// position is now invalid, so overwrite it
+		pos = &m_array[distance_from_start];
+		memmove(pos + num_elements, pos, distance_to_end * sizeof(Type));
+		for (int element{ 0 }; element < num_elements; ++element)
+			*(pos + element) = val;
+		m_size += num_elements;
+		position = begin() + distance_from_start;
+		return position;
 	}
 
 	//*************************************
@@ -748,10 +779,36 @@ namespace nids
 	// different vector
 	//*************************************
 	template<typename Type>
-	template<typename Iterator, typename InputIterator>
-	inline Iterator vector<Type>::insert(Iterator position, InputIterator first, InputIterator last) noexcept
+	template<typename InputIterator, typename>
+	inline typename vector<Type>::iterator vector<Type>::insert(iterator position, InputIterator first, InputIterator last) noexcept
 	{
-		return Iterator();
+		Type* pos = position;
+		size_t distance_to_end = (&m_array[m_size - 1] - pos) + 1;
+		size_t num_elements = last - first;
+
+		// see if the vector has room
+		if ((m_size + num_elements) <= m_capacity)
+		{
+			// copy over the number of spots we wanted
+			memmove(pos + num_elements, pos, distance_to_end * sizeof(Type));
+			for (int index{ 0 }; first != last; ++index, ++first)
+				*(pos + index) = *first;
+			m_size += num_elements;
+			return position;
+		}
+
+		size_t distance_from_start = pos - m_array;
+		expand(m_size + num_elements);
+		runtime_assert(m_size + num_elements <= m_capacity);
+
+		// position is now invalid, so overwrite it
+		pos = &m_array[distance_from_start];
+		memmove(pos + num_elements, pos, distance_to_end * sizeof(Type));
+		for (int index{ 0 }; first < last; ++index, ++first)
+			*(pos + index) = *first;
+		m_size += num_elements;
+		position = begin() + distance_from_start;
+		return position;
 	}
 }
 
