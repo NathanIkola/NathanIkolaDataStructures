@@ -4,6 +4,9 @@
     <ClCompile Include="vector_iterator_tests.cpp">
       <Filter>VectorIteratorTests</Filter>
     </ClCompile>
+    <ClCompile Include="vector_tests.cpp">
+      <Filter>VectorTests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -11,6 +14,9 @@
   <ItemGroup>
     <Filter Include="VectorIteratorTests">
       <UniqueIdentifier>{85a4cbf3-4cca-49c0-9cdd-d94e1be274e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VectorTests">
+      <UniqueIdentifier>{d45c73bf-767e-4c1c-951a-06f187807307}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

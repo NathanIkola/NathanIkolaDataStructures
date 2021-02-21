@@ -58,7 +58,7 @@ namespace nids
 		//************************************
 		constexpr vector() noexcept : m_array(nullptr), m_size(0), m_capacity(0), _cap(0)
 		{
-			m_array = nullptr;
+
 		}
 
 		//************************************
@@ -70,7 +70,29 @@ namespace nids
 		//************************************
 		constexpr vector(size_t size) noexcept : m_array(nullptr), m_size(0), m_capacity(0), _cap(size)
 		{
-			m_array = nullptr;
+			resize(size);
+		}
+
+		//************************************
+		// Initializer list constructor
+		//
+		// Allows the programmer to define
+		// the initial values of the vector
+		// using an initializer list
+		//************************************
+		template<typename T>
+		constexpr vector(const std::initializer_list<T>& values) noexcept
+			: m_array(nullptr), m_size(values.size()), m_capacity(0), _cap(0)
+		{
+			// make room for the values
+			runtime_assert(expand(values.size()) >= values.size());
+			int value{ 0 };
+			const T* cursor = values.begin();
+			while (cursor != values.end())
+			{
+				m_array[value++] = *cursor;
+				cursor++;
+			}
 		}
 
 		//************************************
@@ -121,7 +143,7 @@ namespace nids
 		//************************************
 		inline const Type& operator[](size_t index) const noexcept
 		{
-			runtime_assert(index < m_size);
+			runtime_assert(index < m_capacity);
 			return m_array[index];
 		}
 
@@ -130,7 +152,7 @@ namespace nids
 		//************************************
 		inline Type& operator[](size_t index) noexcept
 		{
-			runtime_assert(index < m_size);
+			runtime_assert(index < m_capacity);
 			return m_array[index];
 		}
 
@@ -265,7 +287,7 @@ namespace nids
 		//************************************
 		constexpr void reserve(size_t size) noexcept 
 		{ 
-			if (size > capacity) expand(size);
+			if (size > m_capacity) expand(size);
 		}
 
 		//************************************
@@ -508,9 +530,6 @@ namespace nids
 	template<typename Type>
 	size_t vector<Type>::resize(size_t size) noexcept
 	{
-		// default initialize
-		Type val{};
-
 		// see what our actual size is
 		if (_cap > size)
 		{
@@ -546,7 +565,7 @@ namespace nids
 
 		// initialize the new data
 		for (; m_capacity < size; ++m_capacity)
-			m_array[m_capacity] = val;
+			m_array[m_capacity] = Type{};
 
 		// this is still required in case size < m_capacity
 		m_capacity = size;
