@@ -71,7 +71,7 @@ TEST(VectorAccess, TestOutOfRangeStdSubscript)
 TEST(VectorAccess, TestOutOfRangeStd)
 {
 	std::vector<int> sv;
-	EXPECT_ANY_THROW(sv.at(0), "");
+	EXPECT_ANY_THROW(sv.at(0));
 }
 
 TEST(VectorAccess, TestInRange)
@@ -122,4 +122,44 @@ TEST(VectorReserve, TestReserve)
 	sv.reserve(0);
 	ASSERT_EQ(nv.size(), sv.size());
 	ASSERT_EQ(nv.capacity(), sv.capacity());
+}
+
+TEST(VectorFront, TestFront)
+{
+	nids::vector<int> nv = _valList;
+	std::vector<int> sv = _valList;
+
+	ASSERT_EQ(nv.front(), sv.front());
+}
+
+TEST(VectorBack, TestBack)
+{
+	nids::vector<int> nv = _valList;
+	std::vector<int> sv = _valList;
+
+	ASSERT_EQ(nv.back(), sv.back());
+}
+
+TEST(VectorSize, TestEmpty)
+{
+	nids::vector<int> nv;
+	ASSERT_TRUE(nv.empty());
+}
+
+TEST(VectorSize, TestSizeEmpty)
+{
+	nids::vector<int> nv;
+	ASSERT_EQ(nv.size(), 0);
+}
+
+TEST(VectorSize, TestEmptyOnPopulatedVector)
+{
+	nids::vector<int> nv = _valList;
+	ASSERT_FALSE(nv.empty());
+}
+
+TEST(VectorSize, TestSizeOnPopulatedVector)
+{
+	nids::vector<int> nv = _valList;
+	ASSERT_EQ(nv.size(), _valList.size());
 }

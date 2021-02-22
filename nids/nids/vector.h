@@ -184,12 +184,12 @@ namespace nids
 		//************************************
 		// Front item getter
 		//************************************
-		inline Type* front() const noexcept { return m_array; }
+		inline Type& front() const noexcept { return m_array[0]; }
 
 		//************************************
 		// Back item getter
 		//************************************
-		inline Type* back() const noexcept { return &m_array[m_size - 1]; }
+		inline Type& back() const noexcept { return m_array[m_size - 1]; }
 
 		//************************************
 		// Begin iterator getter

@@ -85,7 +85,7 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator++() noexcept 
 		{
-			runtime_assert(m_cursor != m_vector->back() + 1);
+			runtime_assert(m_cursor != &(m_vector->back()) + 1);
 			++m_cursor;
 			return *this;
 		}
@@ -96,7 +96,7 @@ namespace nids
 		inline vector_iterator<Type> operator++(int) noexcept 
 		{
 			vector_iterator<Type> _r = *this;
-			runtime_assert(m_cursor != m_vector->back() + 1);
+			runtime_assert(m_cursor != &(m_vector->back()) + 1);
 			++m_cursor;
 			return _r;
 		}
@@ -106,7 +106,7 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type>& operator--() noexcept
 		{
-			runtime_assert(m_cursor != m_vector->front());
+			runtime_assert(m_cursor != &(m_vector->front()));
 			--m_cursor;
 			return *this;
 		}
@@ -116,7 +116,7 @@ namespace nids
 		//******************************
 		inline vector_iterator<Type> operator--(int) noexcept
 		{
-			runtime_assert(m_cursor != m_vector->front());
+			runtime_assert(m_cursor != &(m_vector->front()));
 			vector_iterator<Type> _r = *this;
 			--m_cursor;
 			return _r;
@@ -224,7 +224,7 @@ namespace nids
 		//******************************
 		inline const Type& operator*() const noexcept 
 		{
-			runtime_assert(m_cursor != m_vector->back() + 1);
+			runtime_assert(m_cursor != &(m_vector->back()) + 1);
 			return *m_cursor;
 		}
 
@@ -233,7 +233,7 @@ namespace nids
 		//******************************
 		inline Type& operator*() noexcept 
 		{
-			runtime_assert(m_cursor != m_vector->back() + 1);
+			runtime_assert(m_cursor != &(m_vector->back()) + 1);
 			return *m_cursor;
 		}
 
@@ -269,7 +269,7 @@ namespace nids
 		{
 			vector_iterator<Type> iter{ v };
 			if(v->capacity() != 0)
-				iter.m_cursor = v->back() + 1;
+				iter.m_cursor = &(v->back()) + 1;
 			return iter;
 		}
 	private:
