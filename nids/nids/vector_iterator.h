@@ -17,7 +17,8 @@ namespace nids
 		//******************************
 		// Constructor
 		//******************************
-		inline vector_iterator(const vector<Type>* vector) noexcept : m_vector(vector), m_cursor(nullptr) 
+		inline vector_iterator(const vector<Type>* vector) noexcept 
+			: m_vector(vector), m_cursor(nullptr) 
 		{ 
 			runtime_assert(m_vector != nullptr);
 			if(m_vector->capacity() != 0)
@@ -274,7 +275,7 @@ namespace nids
 		}
 	private:
 		const vector<Type>* m_vector;
-		Type* m_cursor;
+		mutable Type* m_cursor;
 	};
 
 	//******************************
